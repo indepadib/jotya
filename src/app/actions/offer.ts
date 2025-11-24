@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { sendOfferNotification, sendOfferResponseNotification } from '@/lib/email';
 
 export async function createOffer(listingId: string, amount: number) {
     const session = await getSession();
@@ -42,6 +43,21 @@ export async function createOffer(listingId: string, amount: number) {
             }
         });
 
+        // Send email notification to seller
+        const [buyer, seller] = await Promise.all([
+            prisma.user.findUnique({ where: { id: session }, select: { name: true } }),
+            prisma.user.findUnique({ where: { id: listing.sellerId }, select: { email: true } })
+        ]);
+
+        if (buyer && seller?.email) {
+            await sendOfferNotification(
+                seller.email,
+                buyer.name || 'Someone',
+                amount,
+                listing.title
+            );
+        }
+
         revalidatePath(`/items/${listingId}`);
     } catch (error) {
         console.error('Failed to create offer:', error);
@@ -70,12 +86,24 @@ export async function respondToOffer(messageId: string, status: 'ACCEPTED' | 'RE
         data: { offerStatus: status }
     });
 
-    // Send a system message notifying the buyer
+    // Send email notification to buyer
+    const buyer = await prisma.user.findUnique({
+        where: { id: message.senderId },
+        select: { email: true }
+    });
+
+    if (buyer?.email && message.listing) {
+        await sendOfferResponseNotification(
+            buyer.email,
+            status,
+            message.listing.title
+        );
+    }
+
+    // System message to notify
     await prisma.message.create({
         data: {
-            content: status === 'ACCEPTED'
-                ? `🎉 Offer accepted! You can now buy ${(message as any).listing?.title} for ${(message as any).offerAmount} MAD.`
-                : `Offer for ${(message as any).offerAmount} MAD was declined.`,
+            content: `Your offer has been ${status === 'ACCEPTED' ? 'accepted' : 'declined'}`,
             senderId: session,
             receiverId: message.senderId,
             listingId: message.listingId,
@@ -84,4 +112,5 @@ export async function respondToOffer(messageId: string, status: 'ACCEPTED' | 'RE
     });
 
     revalidatePath('/inbox');
+    return { success: true };
 }

@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { sendMessageNotification } from '@/lib/email';
 
 export async function startConversation(formData: FormData) {
     const session = (await cookies()).get('session')?.value;
@@ -52,6 +53,20 @@ export async function sendMessage(receiverId: string, content: string, listingId
             listingId: listingId || undefined,
         },
     });
+
+    // Send email notification
+    const [sender, receiver] = await Promise.all([
+        prisma.user.findUnique({ where: { id: session }, select: { name: true } }),
+        prisma.user.findUnique({ where: { id: receiverId }, select: { email: true } })
+    ]);
+
+    if (sender && receiver?.email) {
+        await sendMessageNotification(
+            receiver.email,
+            sender.name || 'Someone',
+            content.substring(0, 100)
+        );
+    }
 
     return { success: true };
 }
