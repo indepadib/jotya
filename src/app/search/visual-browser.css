@@ -1,0 +1,294 @@
+/* Visual Browser - VERTICAL MOROCCAN DESIGN */
+.visualBrowser {
+    padding: 24px 16px 60px;
+    max-width: 600px;
+    margin: 0 auto;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.browserTitle {
+    font-family: var(--font-serif);
+    font-size: 1.75rem;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.backBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px 0;
+    margin-bottom: 20px;
+    transition: gap 0.2s ease;
+}
+
+.backBtn:hover {
+    gap: 12px;
+}
+
+/* VERTICAL GENDER BLOCKS - Full Width */
+.genderBlocks {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.genderBlock {
+    position: relative;
+    background: linear-gradient(135deg,
+            var(--surface) 0%,
+            rgba(196, 120, 90, 0.03) 100%);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 24px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.genderBlock::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: linear-gradient(180deg, var(--primary) 0%, var(--gold) 100%);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+}
+
+.genderBlock:hover::before {
+    transform: scaleY(1);
+}
+
+.genderBlock:hover {
+    transform: translateX(8px);
+    border-color: var(--primary);
+    box-shadow: 0 8px 24px rgba(196, 120, 90, 0.15);
+}
+
+.genderIcon {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--gold) 100%);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 12px rgba(196, 120, 90, 0.3);
+}
+
+.genderIcon svg {
+    color: white;
+}
+
+.genderName {
+    font-family: var(--font-serif);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    flex: 1;
+}
+
+/* VERTICAL CATEGORY BLOCKS - Full Width */
+.categoryBlocks {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.categoryBlock {
+    padding: 20px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid transparent;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.categoryBlock:hover {
+    border-left-color: var(--primary);
+    background: linear-gradient(90deg,
+            rgba(196, 120, 90, 0.04) 0%,
+            var(--surface) 100%);
+    transform: translateX(4px);
+}
+
+.categoryBlock svg {
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.categoryBlockName {
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    flex: 1;
+}
+
+/* VERTICAL TYPE LIST - Full Width */
+.typeGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.typeCard {
+    padding: 18px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.typeCard::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--primary);
+    transform: scaleY(0);
+    transition: transform 0.2s ease;
+}
+
+.typeCard:hover::before {
+    transform: scaleY(1);
+}
+
+.typeCard:hover {
+    background: rgba(196, 120, 90, 0.03);
+    border-color: rgba(196, 120, 90, 0.4);
+    padding-left: 24px;
+}
+
+.typeCardName {
+    font-weight: 500;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.typeCardChevron {
+    color: var(--text-secondary);
+}
+
+/* VERTICAL SUBTYPE GRID - 2 Columns Only */
+.subtypeGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.subtypeCard {
+    padding: 16px 18px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.subtypeCard::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--gold) 100%);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.subtypeCard:hover::after {
+    opacity: 1;
+}
+
+.subtypeCard:hover {
+    color: white;
+    border-color: var(--primary);
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(196, 120, 90, 0.2);
+}
+
+/* Make text appear above gradient */
+.subtypeCard:hover {
+    position: relative;
+}
+
+/* Mobile optimization */
+@media (max-width: 640px) {
+    .visualBrowser {
+        padding: 20px 12px 40px;
+    }
+
+    .browserTitle {
+        font-size: 1.5rem;
+    }
+
+    .genderBlock {
+        padding: 20px 16px;
+    }
+
+    .genderIcon {
+        width: 52px;
+        height: 52px;
+    }
+
+    .genderName {
+        font-size: 1.15rem;
+    }
+
+    .categoryBlock {
+        padding: 18px 20px;
+    }
+
+    .subtypeGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tablet and up - keep vertical but wider */
+@media (min-width: 768px) {
+    .visualBrowser {
+        max-width: 700px;
+    }
+}

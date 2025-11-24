@@ -1,0 +1,82 @@
+.container {
+    margin-bottom: 24px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.previewWrapper {
+    position: relative;
+    aspect-ratio: 1;
+}
+
+.preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+}
+
+.removeBtn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    background: red;
+    color: white;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.uploadButton {
+    aspect-ratio: 1;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: var(--background);
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.uploadButton:active {
+    background: var(--surface);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.hiddenInput {
+    display: none;
+}
+
+.plusIcon {
+    font-size: 2rem;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.uploadText {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.hint {
+    margin-top: 8px;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    text-align: center;
+}

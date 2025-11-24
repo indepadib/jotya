@@ -1,0 +1,502 @@
+.container {
+    padding: 16px;
+    padding-bottom: 80px;
+    /* Bottom nav space */
+}
+
+.header {
+    position: sticky;
+    top: 0;
+    background: var(--background);
+    z-index: 10;
+    padding-bottom: 12px;
+}
+
+.searchBar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.searchInputWrapper {
+    position: relative;
+    flex: 1;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.searchIcon svg {
+    color: var(--primary);
+}
+
+.searchInput {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--surface);
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.searchInput:focus {
+    border-color: var(--primary);
+}
+
+.filterBtn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--foreground);
+}
+
+.filterBtn svg {
+    color: var(--primary);
+}
+
+.activeFilters {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+}
+
+.filterChip {
+    padding: 6px 12px;
+    background: var(--primary);
+    color: white;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.removeFilter {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0 2px;
+}
+
+.resultsGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.itemCard {
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    position: relative;
+}
+
+.itemImage {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    background: #f5f5f5;
+}
+
+.itemInfo {
+    padding: 10px;
+}
+
+.itemPrice {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.itemBrand {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.itemSize {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.favButton {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    backdrop-filter: blur(4px);
+    transition: transform 0.2s ease;
+}
+
+.favButton:active {
+    transform: scale(0.9);
+}
+
+.favButton svg {
+    color: var(--primary);
+}
+
+.filterDrawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.filterDrawer.open {
+    transform: translateY(0);
+}
+
+.drawerHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.drawerTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.filterSection {
+    margin-bottom: 24px;
+}
+
+.filterLabel {
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.filterInput {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+}
+
+.applyBtn {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 90;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+.overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 0 4px;
+}
+
+.breadcrumbGroup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.breadcrumbSeparator {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.breadcrumbItem {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.breadcrumbItem:hover:not(:disabled) {
+    background: rgba(196, 120, 90, 0.1);
+    color: var(--primary);
+}
+
+.breadcrumbItem.active {
+    color: var(--text-primary);
+    font-weight: 600;
+    cursor: default;
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Visual Browser - VERTICAL MOROCCAN DESIGN */
+.visualBrowser {
+    padding: 16px 16px 60px;
+    max-width: 600px;
+    margin: 0 auto;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.browserTitle {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    padding-left: 4px;
+    font-weight: 700;
+}
+
+/* VERTICAL GENDER BLOCKS */
+.genderBlocks {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.genderBlock {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.genderBlock:hover {
+    transform: scale(1.02);
+    border-color: var(--primary);
+    box-shadow: 0 8px 20px rgba(196, 120, 90, 0.15);
+}
+
+.genderIcon {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--gold) 100%);
+    border-radius: 12px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(196, 120, 90, 0.2);
+}
+
+.genderName {
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    flex: 1;
+}
+
+.chevron {
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
+
+/* VERTICAL CATEGORY BLOCKS */
+.categoryBlocks {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.categoryBlock {
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.categoryBlock:hover {
+    background: rgba(196, 120, 90, 0.04);
+    border-color: var(--primary);
+    transform: translateX(4px);
+}
+
+.categoryBlock svg {
+    color: var(--primary);
+    width: 24px;
+    height: 24px;
+}
+
+.categoryBlockName {
+    font-weight: 500;
+    font-size: 1rem;
+    color: var(--text-primary);
+    flex: 1;
+}
+
+/* VERTICAL TYPE LIST */
+.typeGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.typeCard {
+    padding: 16px 20px;
+    background: var(--surface);
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    width: 100%;
+    text-align: left;
+}
+
+.typeCard:hover {
+    background: rgba(196, 120, 90, 0.04);
+}
+
+.typeCardName {
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+/* SUBTYPE GRID */
+.subtypeGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.subtypeCard {
+    padding: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.subtypeCard:hover {
+    border-color: var(--primary);
+    background: rgba(196, 120, 90, 0.04);
+    color: var(--primary);
+}
+
+/* Mobile optimization */
+@media (max-width: 640px) {
+    .visualBrowser {
+        padding: 12px 12px 80px;
+    }
+
+    .browserTitle {
+        font-size: 1.25rem;
+        margin-bottom: 16px;
+    }
+
+    .genderBlock {
+        padding: 12px;
+    }
+
+    .genderIcon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .genderName {
+        font-size: 1rem;
+    }
+}
