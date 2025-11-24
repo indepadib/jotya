@@ -23,6 +23,9 @@ export default function SearchForm() {
     const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
     const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
     const [condition, setCondition] = useState(searchParams.get('condition') || '');
+    const [size, setSize] = useState(searchParams.get('size') || '');
+    const [color, setColor] = useState(searchParams.get('color') || '');
+    const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || '');
 
     // Category Filters
     const [gender, setGender] = useState(searchParams.get('gender') || '');
@@ -56,10 +59,13 @@ export default function SearchForm() {
             minPrice: minPrice ? Number(minPrice) : undefined,
             maxPrice: maxPrice ? Number(maxPrice) : undefined,
             condition,
+            size,
+            color,
             gender,
             category,
             itemType,
-            subtype
+            subtype,
+            sortBy
         };
         const data = await searchListings(filters);
         setResults(data);
@@ -69,7 +75,7 @@ export default function SearchForm() {
     // Debounce search or fetch on mount
     useEffect(() => {
         // Only fetch if there's a query or active filters
-        if (!query && !brand && !minPrice && !maxPrice && !condition && !gender && !category && !itemType && !subtype) {
+        if (!query && !brand && !minPrice && !maxPrice && !condition && !size && !color && !gender && !category && !itemType && !subtype) {
             setResults([]);
             return;
         }
@@ -78,7 +84,7 @@ export default function SearchForm() {
             fetchResults();
         }, 500);
         return () => clearTimeout(timer);
-    }, [query, brand, minPrice, maxPrice, condition, gender, category, itemType, subtype]);
+    }, [query, brand, minPrice, maxPrice, condition, size, color, sortBy, gender, category, itemType, subtype]);
 
     const handleFavorite = async (e: React.MouseEvent, id: string) => {
         e.preventDefault();
@@ -97,6 +103,9 @@ export default function SearchForm() {
         if (minPrice) params.set('minPrice', minPrice);
         if (maxPrice) params.set('maxPrice', maxPrice);
         if (condition) params.set('condition', condition);
+        if (size) params.set('size', size);
+        if (color) params.set('color', color);
+        if (sortBy) params.set('sortBy', sortBy);
 
         if (gender) params.set('gender', gender);
         if (category) params.set('category', category);
@@ -276,6 +285,41 @@ export default function SearchForm() {
                             onChange={(e) => setMaxPrice(e.target.value)}
                         />
                     </div>
+                </div>
+
+                <div className={styles.filterSection}>
+                    <label className={styles.filterLabel}>Size</label>
+                    <input
+                        type="text"
+                        className={styles.filterInput}
+                        placeholder="e.g. M, L, 42"
+                        value={size}
+                        onChange={(e) => setSize(e.target.value)}
+                    />
+                </div>
+
+                <div className={styles.filterSection}>
+                    <label className={styles.filterLabel}>Color</label>
+                    <input
+                        type="text"
+                        className={styles.filterInput}
+                        placeholder="e.g. Black, Blue"
+                        value={color}
+                        onChange={(e) => setColor(e.target.value)}
+                    />
+                </div>
+
+                <div className={styles.filterSection}>
+                    <label className={styles.filterLabel}>Sort By</label>
+                    <select
+                        className={styles.filterInput}
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                    >
+                        <option value="">Newest First</option>
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                    </select>
                 </div>
 
                 <button className={styles.applyBtn} onClick={updateUrl}>

@@ -36,7 +36,7 @@ Netlify should automatically detect Next.js, but ensure these settings are corre
 ### Environment Variables
 In the Netlify deploy setup (or later in Site Settings -> Environment variables), add these:
 
-- `DATABASE_URL`: Your Supabase **Transaction** connection string (Port 6543).
+- `DATABASE_URL`: Your Supabase **Transaction** connection string (Port 6543). **IMPORTANT:** Append `?pgbouncer=true` to the end of this URL.
 - `DIRECT_URL`: Your Supabase **Session** connection string (Port 5432).
 - `NEXTAUTH_SECRET`: A random string for authentication security.
 - `NEXTAUTH_URL`: Your Netlify URL (e.g., `https://jotya-app.netlify.app`).

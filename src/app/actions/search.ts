@@ -11,10 +11,12 @@ export interface SearchFilters {
     maxPrice?: number;
     condition?: string;
     size?: string;
+    color?: string;
     gender?: string;
     category?: string;
     itemType?: string;
     subtype?: string;
+    sortBy?: string;
 }
 
 export async function searchListings(filters: SearchFilters) {
@@ -49,15 +51,27 @@ export async function searchListings(filters: SearchFilters) {
         where.size = filters.size;
     }
 
+    if (filters.color) {
+        where.color = { contains: filters.color };
+    }
+
     if (filters.minPrice || filters.maxPrice) {
         where.price = {};
         if (filters.minPrice) where.price.gte = filters.minPrice;
         if (filters.maxPrice) where.price.lte = filters.maxPrice;
     }
 
+    // Determine sort order
+    let orderBy: any = { createdAt: 'desc' }; // Default: newest first
+    if (filters.sortBy === 'price_asc') {
+        orderBy = { price: 'asc' };
+    } else if (filters.sortBy === 'price_desc') {
+        orderBy = { price: 'desc' };
+    }
+
     const listings = await prisma.listing.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         include: {
             seller: { select: { name: true, rating: true } },
             // favoritedBy: session ? { where: { userId: session } } : false
