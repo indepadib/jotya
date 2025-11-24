@@ -2,6 +2,7 @@
 
 import { useState, useEffect, ChangeEvent } from 'react';
 import { supabase } from '@/lib/supabase';
+import imageCompression from 'browser-image-compression';
 import styles from './ImageUploader.module.css';
 
 interface ImageUploaderProps {
@@ -28,14 +29,24 @@ export default function ImageUploader({ onImagesChange, initialImages }: ImageUp
         const newUrls: string[] = [];
 
         try {
+            const compressionOptions = {
+                maxSizeMB: 1,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true,
+                fileType: 'image/jpeg'
+            };
+
             for (const file of Array.from(files)) {
-                const fileExt = file.name.split('.').pop();
+                // Compress image
+                const compressedFile = await imageCompression(file, compressionOptions);
+
+                const fileExt = 'jpg'; // Always use jpg after compression
                 const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
                 const filePath = `${fileName}`;
 
                 const { error: uploadError } = await supabase.storage
                     .from('jotya-images')
-                    .upload(filePath, file);
+                    .upload(filePath, compressedFile);
 
                 if (uploadError) {
                     console.error('Error uploading image:', uploadError);
