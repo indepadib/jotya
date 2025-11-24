@@ -42,30 +42,35 @@ export async function signup(prevState: any, formData: FormData) {
 }
 
 export async function login(prevState: any, formData: FormData) {
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
+    try {
+        const email = formData.get('email') as string;
+        const password = formData.get('password') as string;
 
-    if (!email || !password) {
-        return { error: 'All fields are required' };
+        if (!email || !password) {
+            return { error: 'All fields are required' };
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { email },
+        });
+
+        if (!user) {
+            return { error: 'Invalid credentials' };
+        }
+
+        const isValid = await bcrypt.compare(password, user.password);
+
+        if (!isValid) {
+            return { error: 'Invalid credentials' };
+        }
+
+        // Create session
+        const expires = new Date(Date.now() + SESSION_DURATION * 1000);
+        (await cookies()).set('session', user.id, { expires, httpOnly: true });
+    } catch (error: any) {
+        console.error('Login error:', error);
+        return { error: `Login failed: ${error.message}` };
     }
-
-    const user = await prisma.user.findUnique({
-        where: { email },
-    });
-
-    if (!user) {
-        return { error: 'Invalid credentials' };
-    }
-
-    const isValid = await bcrypt.compare(password, user.password);
-
-    if (!isValid) {
-        return { error: 'Invalid credentials' };
-    }
-
-    // Create session
-    const expires = new Date(Date.now() + SESSION_DURATION * 1000);
-    (await cookies()).set('session', user.id, { expires, httpOnly: true });
 
     redirect('/');
 }
