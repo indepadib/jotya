@@ -19,6 +19,10 @@ model User {
   verified         Boolean       @default(false)
   isAdmin          Boolean       @default(false)
   banned           Boolean       @default(false)
+  phoneVerified    Boolean       @default(false)
+  emailVerified    Boolean       @default(false)
+  idVerified       Boolean       @default(false)
+  topRatedSeller   Boolean       @default(false)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   favorites        Favorite[]
@@ -30,6 +34,10 @@ model User {
   purchases        Transaction[] @relation("Buyer")
   sales            Transaction[] @relation("Seller")
   wallet           Wallet?
+  blockedBy        BlockedUser[] @relation("Blocker")
+  blockedUsers     BlockedUser[] @relation("Blocked")
+  reportsSubmitted Report[]      @relation("Reporter")
+  reportsReceived  Report[]      @relation("Reported")
 }
 
 model Wallet {
@@ -66,6 +74,7 @@ model Listing {
   seller           User          @relation(fields: [sellerId], references: [id])
   messages         Message[]
   transactions     Transaction[]
+  reports          Report[]
 }
 
 model Transaction {
@@ -123,4 +132,29 @@ model Review {
   reviewee      User        @relation("Reviewee", fields: [revieweeId], references: [id])
   reviewer      User        @relation("Reviewer", fields: [reviewerId], references: [id])
   transaction   Transaction @relation(fields: [transactionId], references: [id])
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  reason      String
+  description String?
+  status      String   @default("PENDING")
+  reporterId  String
+  reportedId  String
+  listingId   String?
+  createdAt   DateTime @default(now())
+  reporter    User     @relation("Reporter", fields: [reporterId], references: [id])
+  reported    User     @relation("Reported", fields: [reportedId], references: [id])
+  listing     Listing? @relation(fields: [listingId], references: [id])
+}
+
+model BlockedUser {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id])
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id])
+
+  @@unique([blockerId, blockedId])
 }
