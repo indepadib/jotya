@@ -136,6 +136,8 @@
     align-items: center;
     justify-content: center;
     margin: 0 auto 12px;
+    background: rgba(196, 120, 90, 0.1);
+    color: var(--primary);
 }
 
 .analyticsValue {

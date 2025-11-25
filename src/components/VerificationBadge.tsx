@@ -1,5 +1,8 @@
 'use client';
 
+import Icon from './icons/Icon';
+import styles from './VerificationBadge.module.css';
+
 interface VerificationBadgeProps {
     phoneVerified?: boolean;
     emailVerified?: boolean;
@@ -9,69 +12,68 @@ interface VerificationBadgeProps {
 }
 
 export default function VerificationBadge({
-    phoneVerified,
-    emailVerified,
-    idVerified,
-    topRatedSeller,
+    phoneVerified = false,
+    emailVerified = false,
+    idVerified = false,
+    topRatedSeller = false,
     size = 'md'
 }: VerificationBadgeProps) {
-    const sizeClasses = {
-        sm: 'text-xs px-1.5 py-0.5',
-        md: 'text-sm px-2 py-1',
-        lg: 'text-base px-3 py-1.5'
-    };
-
     const badges = [];
 
     if (topRatedSeller) {
-        badges.push(
-            <span
-                key="top"
-                className={`inline-flex items-center gap-1 ${sizeClasses[size]} bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full font-semibold`}
-                title="Top Rated Seller"
-            >
-                🏆 Top Rated
-            </span>
-        );
+        badges.push({
+            key: 'top',
+            icon: 'star',
+            label: 'Top Rated',
+            className: styles.gold
+        });
     }
 
     if (idVerified) {
-        badges.push(
-            <span
-                key="id"
-                className={`inline-flex items-center gap-1 ${sizeClasses[size]} bg-blue-100 text-blue-800 rounded-full font-semibold border border-blue-300`}
-                title="ID Verified"
-            >
-                ✓ Verified
-            </span>
-        );
+        badges.push({
+            key: 'id',
+            icon: 'checkCircle',
+            label: 'ID Verified',
+            className: styles.verified
+        });
     }
 
-    if (phoneVerified && !idVerified) {
-        badges.push(
-            <span
-                key="phone"
-                className={`inline-flex items-center gap-1 ${sizeClasses[size]} bg-green-100 text-green-800 rounded-full font-semibold border border-green-300`}
-                title="Phone Verified"
-            >
-                📞 Phone
-            </span>
-        );
+    if (phoneVerified) {
+        badges.push({
+            key: 'phone',
+            icon: 'phone',
+            label: 'Phone',
+            className: styles.verified
+        });
     }
 
-    if (emailVerified && !idVerified && !phoneVerified) {
-        badges.push(
-            <span
-                key="email"
-                className={`inline-flex items-center gap-1 ${sizeClasses[size]} bg-gray-100 text-gray-800 rounded-full font-semibold border border-gray-300`}
-                title="Email Verified"
-            >
-                ✉️ Email
-            </span>
-        );
+    if (emailVerified) {
+        badges.push({
+            key: 'email',
+            icon: 'mail',
+            label: 'Email',
+            className: styles.verified
+        });
     }
 
     if (badges.length === 0) return null;
 
-    return <div className="flex gap-2 flex-wrap">{badges}</div>;
+    return (
+        <div className={styles.container}>
+            {badges.map(badge => (
+                <div
+                    key={badge.key}
+                    className={`${styles.badge} ${styles[size]} ${badge.className}`}
+                    title={badge.label}
+                >
+                    <Icon
+                        name={badge.icon as any}
+                        size={size === 'sm' ? 12 : size === 'md' ? 14 : 16}
+                        strokeWidth={2}
+                    />
+                    <span className={styles.label}>{badge.label}</span>
+                </div>
+            ))}
+        </div>
+    );
 }

@@ -1,0 +1,64 @@
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 999px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    border: 1.5px solid;
+}
+
+.badge:hover {
+    transform: scale(1.05);
+}
+
+/* Size Variants */
+.sm {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    gap: 3px;
+}
+
+.md {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    gap: 4px;
+}
+
+.lg {
+    font-size: 0.85rem;
+    padding: 5px 12px;
+    gap: 5px;
+}
+
+/* Color Variants - Monochromatic */
+.gold {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(196, 120, 90, 0.25);
+}
+
+.verified {
+    background: transparent;
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.verified:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.label {
+    font-size: inherit;
+    font-weight: inherit;
+}

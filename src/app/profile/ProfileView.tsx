@@ -8,6 +8,7 @@ import TopNav from '@/components/Layout/TopNav';
 import EditProfileModal from '@/components/Profile/EditProfileModal';
 import ChangePasswordModal from '@/components/Profile/ChangePasswordModal';
 import VerificationBadge from '@/components/VerificationBadge';
+import Icon from '@/components/icons/Icon';
 import styles from './profile.module.css';
 
 interface ProfileViewProps {
@@ -111,46 +112,35 @@ export default function ProfileView({ user, stats }: ProfileViewProps) {
 
             {/* Analytics Dashboard */}
             <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>📊 Analytics</h2>
+                <h2 className={styles.sectionTitle}>Seller Analytics</h2>
                 <div className={styles.analyticsGrid}>
                     <div className={styles.analyticsCard}>
-                        <div className={styles.analyticsIcon} style={{ background: '#e3f2fd' }}>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2196f3" strokeWidth="2">
-                                <line x1="12" y1="1" x2="12" y2="23"></line>
-                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                            </svg>
+                        <div className={styles.analyticsIcon}>
+                            <Icon name="wallet" size={24} strokeWidth={2} />
                         </div>
                         <div className={styles.analyticsValue}>{stats.totalRevenue.toFixed(0)} MAD</div>
                         <div className={styles.analyticsLabel}>Total Revenue</div>
                     </div>
 
                     <div className={styles.analyticsCard}>
-                        <div className={styles.analyticsIcon} style={{ background: '#fff3e0' }}>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff9800" strokeWidth="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
+                        <div className={styles.analyticsIcon}>
+                            <Icon name="creditCard" size={24} strokeWidth={2} />
                         </div>
                         <div className={styles.analyticsValue}>{user.wallet?.pending?.toFixed(0) || 0} MAD</div>
                         <div className={styles.analyticsLabel}>Pending Balance</div>
                     </div>
 
                     <div className={styles.analyticsCard}>
-                        <div className={styles.analyticsIcon} style={{ background: '#e8f5e9' }}>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4caf50" strokeWidth="2">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
+                        <div className={styles.analyticsIcon}>
+                            <Icon name="box" size={24} strokeWidth={2} />
                         </div>
                         <div className={styles.analyticsValue}>{stats.totalSales}</div>
                         <div className={styles.analyticsLabel}>Total Sales</div>
                     </div>
 
                     <div className={styles.analyticsCard}>
-                        <div className={styles.analyticsIcon} style={{ background: '#fce4ec' }}>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e91e63" strokeWidth="2">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                            </svg>
+                        <div className={styles.analyticsIcon}>
+                            <Icon name="star" size={24} strokeWidth={2} />
                         </div>
                         <div className={styles.analyticsValue}>{stats.avgRating}</div>
                         <div className={styles.analyticsLabel}>Average Rating</div>
