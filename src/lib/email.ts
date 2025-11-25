@@ -1,13 +1,12 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function sendMessageNotification(
     toEmail: string,
     fromName: string,
     messagePreview: string
 ) {
     try {
+        const resend = new Resend(process.env.RESEND_API_KEY);
         await resend.emails.send({
             from: 'Jotya <notifications@jotya.com>',
             to: toEmail,
@@ -33,6 +32,7 @@ export async function sendOfferNotification(
     itemTitle: string
 ) {
     try {
+        const resend = new Resend(process.env.RESEND_API_KEY);
         await resend.emails.send({
             from: 'Jotya <notifications@jotya.com>',
             to: toEmail,
@@ -59,6 +59,7 @@ export async function sendOfferResponseNotification(
     const color = status === 'ACCEPTED' ? '#28a745' : '#dc3545';
 
     try {
+        const resend = new Resend(process.env.RESEND_API_KEY);
         await resend.emails.send({
             from: 'Jotya <notifications@jotya.com>',
             to: toEmail,
