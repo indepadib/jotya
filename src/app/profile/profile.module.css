@@ -8,6 +8,10 @@
     background: linear-gradient(135deg,
             rgba(196, 120, 90, 0.08) 0%,
             rgba(232, 168, 124, 0.08) 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
 }
 
 .avatar {

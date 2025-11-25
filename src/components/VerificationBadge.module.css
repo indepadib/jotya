@@ -1,23 +1,27 @@
 .container {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
     align-items: center;
+    justify-content: center;
+    margin: 8px 0;
 }
 
 .badge {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     border-radius: 999px;
     font-weight: 600;
     white-space: nowrap;
-    transition: all 0.2s ease;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1.5px solid;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .badge:hover {
-    transform: scale(1.05);
+    transform: translateY(-1px) scale(1.03);
+    box-shadow: 0 4px 12px rgba(196, 120, 90, 0.2);
 }
 
 /* Size Variants */
