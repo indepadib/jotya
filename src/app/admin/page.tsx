@@ -82,7 +82,7 @@ export default async function AdminPage() {
                         )}
                     </Link>
 
-                    <Link href="/admin /listings" className={styles.actionCard}>
+                    <Link href="/admin/listings" className={styles.actionCard}>
                         <div className={styles.actionIcon}>📦</div>
                         <div className={styles.actionLabel}>Moderate Listings</div>
                         {stats.pendingListings > 0 && (

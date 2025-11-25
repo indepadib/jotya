@@ -178,9 +178,6 @@ export default function ItemPageClient({
                                     <span className={styles.sellerSince}>Member since {memberSince}</span>
                                 </div>
                             </div>
-                            <Link href={`/profile/${listing.sellerId}`} className={styles.viewProfileBtn}>
-                                View Profile
-                            </Link>
                         </div>
                         {!isOwner && currentUserId && (
                             <div style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
