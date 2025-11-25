@@ -28,7 +28,6 @@
     border-radius: var(--radius-md);
     min-width: 64px;
     min-height: 48px;
-    /* Touch target minimum */
     position: relative;
 }
 
@@ -97,13 +96,5 @@
 @media (min-width: 768px) {
     .nav {
         display: none;
-        /* Hide on larger screens if you have top nav */
     }
 }
-
-0 2px 8px rgba(196, 120, 90, 0.3);
-}
-
-.sellIcon {
-    font-size: 1.75rem;
-    font-weight: bold;
