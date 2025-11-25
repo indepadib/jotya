@@ -8,8 +8,6 @@ import { checkAndUpdateTopRatedStatus } from '@/lib/badgeCalculator';
 import { Resend } from 'resend';
 import crypto from 'crypto';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 // Email Verification
 export async function sendEmailVerification() {
     const session = await getSession();
@@ -43,6 +41,7 @@ export async function sendEmailVerification() {
     });
 
     // Send verification email
+    const resend = new Resend(process.env.RESEND_API_KEY);
     const verificationUrl = `${process.env.NEXTAUTH_URL}/verify-email/${token}`;
 
     await resend.emails.send({
