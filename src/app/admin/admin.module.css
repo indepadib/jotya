@@ -114,9 +114,17 @@
 }
 
 .actionIcon {
-    font-size: 3rem;
+    color: var(--primary);
     margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
+.iconSvg {
+    color: inherit;
+}
+
 
 .actionLabel {
     font-weight: 600;
