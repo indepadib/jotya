@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import styles from './FloatingAIChat.module.css';
 import OfferMessage from './OfferMessage';
 
 export default function FloatingAIChat() {
     const [isOpen, setIsOpen] = useState(false);
     const [inputValue, setInputValue] = useState('');
+    const messagesEndRef = useRef<HTMLDivElement>(null);
     const [messages, setMessages] = useState<Array<{
         id: string;
         type: 'text' | 'offer';
@@ -27,43 +28,74 @@ export default function FloatingAIChat() {
         }
     ]);
 
-    const handleSend = () => {
-        if (!inputValue.trim()) return;
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages, isLoading]);
 
-        const newUserMsg = {
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSend = async () => {
+        if (!inputValue.trim() || isLoading) return;
+
+        const userMsg = {
             id: Date.now().toString(),
             type: 'text' as const,
             sender: 'user' as const,
             content: inputValue
         };
 
-        setMessages(prev => [...prev, newUserMsg]);
+        setMessages(prev => [...prev, userMsg]);
         setInputValue('');
+        setIsLoading(true);
 
-        // Demo trigger for offer message
-        if (inputValue.toLowerCase().includes('demo offer')) {
-            setMessages(prev => [...prev, {
-                id: (Date.now() + 1).toString(),
-                type: 'offer',
-                sender: 'ai',
-                content: {
-                    productImage: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=400&q=60', // Optimized URL
-                    productName: 'Vintage Gucci Bag',
-                    price: 1500,
-                    originalPrice: 2200,
-                    status: 'pending'
-                }
-            }]);
-        } else {
-            // Default AI response
-            setTimeout(() => {
+        try {
+            // Import dynamically to avoid server-side issues in client component if needed, 
+            // but standard import is fine for server actions
+            const { chatWithAI } = await import('@/app/actions/ai');
+            const response = await chatWithAI(userMsg.content);
+
+            if (response.type === 'search_results' && response.items) {
+                // Add text message first
                 setMessages(prev => [...prev, {
-                    id: (Date.now() + 1).toString(),
+                    id: Date.now().toString(),
                     type: 'text',
                     sender: 'ai',
-                    content: "I'm looking for that... (Try typing 'demo offer' to see the new component!)"
+                    content: response.message
                 }]);
-            }, 1000);
+
+                // Add offer/product cards
+                response.items.forEach((item: any, index: number) => {
+                    setMessages(prev => [...prev, {
+                        id: (Date.now() + index + 1).toString(),
+                        type: 'offer',
+                        sender: 'ai',
+                        content: {
+                            productImage: item.image,
+                            productName: item.title,
+                            price: item.price,
+                            originalPrice: item.price * 1.2, // Mock original price
+                            status: 'pending'
+                        }
+                    }]);
+                });
+            } else {
+                setMessages(prev => [...prev, {
+                    id: Date.now().toString(),
+                    type: 'text',
+                    sender: 'ai',
+                    content: response.message
+                }]);
+            }
+        } catch (error) {
+            console.error(error);
+            setMessages(prev => [...prev, {
+                id: Date.now().toString(),
+                type: 'text',
+                sender: 'ai',
+                content: "Sorry, I encountered an error. Please try again."
+            }]);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -149,6 +181,14 @@ export default function FloatingAIChat() {
                                         </div>
                                     ))}
                                 </div>
+                                <div ref={messagesEndRef} />
+                                {isLoading && (
+                                    <div className={styles.loadingBubble}>
+                                        <div className={styles.dot}></div>
+                                        <div className={styles.dot}></div>
+                                        <div className={styles.dot}></div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
