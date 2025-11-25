@@ -3,42 +3,50 @@
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import bcrypt from 'bcryptjs';
+import { sendEmailVerification } from './verification';
 
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 1 week
 
-export async function signup(prevState: any, formData: FormData) {
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const name = formData.get('name') as string;
+export async function signup(email: string, password: string, name: string) {
+    try {
+        // Check if user exists
+        const existingUser = await prisma.user.findUnique({ where: { email } });
+        if (existingUser) {
+            return { error: 'User already exists' };
+        }
 
-    if (!email || !password || !name) {
-        return { error: 'All fields are required' };
+        const hashedPassword = await hashPassword(password);
+
+        const user = await prisma.user.create({
+            data: {
+                email,
+                password: hashedPassword,
+                name,
+                wallet: {
+                    create: {
+                        balance: 0,
+                        pending: 0
+                    }
+                }
+            },
+        });
+
+        const cookieStore = await cookies();
+        cookieStore.set('session', user.id, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+            path: '/',
+        });
+
+        // Send verification email
+        await sendEmailVerification();
+
+        return { success: true };
+    } catch (error) {
+        console.error('Signup error:', error);
+        return { error: 'Failed to create account' };
     }
-
-    const existingUser = await prisma.user.findUnique({
-        where: { email },
-    });
-
-    if (existingUser) {
-        return { error: 'User already exists' };
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await prisma.user.create({
-        data: {
-            email,
-            password: hashedPassword,
-            name,
-        },
-    });
-
-    // Create session
-    const expires = new Date(Date.now() + SESSION_DURATION * 1000);
-    (await cookies()).set('session', user.id, { expires, httpOnly: true });
-
-    redirect('/');
 }
 
 export async function login(prevState: any, formData: FormData) {

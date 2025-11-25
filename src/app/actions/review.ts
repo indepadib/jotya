@@ -2,8 +2,9 @@
 
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath } from '@/lib/badgeCalculator'
 import { redirect } from 'next/navigation';
+import { checkAndUpdateTopRatedStatus } from '@/lib/badgeCalculator';
 
 export async function createReview(transactionId: string, rating: number, comment: string) {
     const session = await getSession();
@@ -40,6 +41,9 @@ export async function createReview(transactionId: string, rating: number, commen
         where: { id: transaction.sellerId },
         data: { rating: avgRating }
     });
+
+    // Check and update Top Rated status
+    await checkAndUpdateTopRatedStatus(transaction.sellerId);
 
     revalidatePath('/purchases');
     redirect('/purchases');
