@@ -28,11 +28,11 @@ export default function FloatingAIChat() {
         }
     ]);
 
+    const [isLoading, setIsLoading] = useState(false);
+
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isLoading]);
-
-    const [isLoading, setIsLoading] = useState(false);
 
     const handleSend = async () => {
         if (!inputValue.trim() || isLoading) return;
