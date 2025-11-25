@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Menu from '@/components/Layout/Menu';
 import FloatingAIChat from '@/components/AI/FloatingAIChat';
 import styles from "./page.module.css";
@@ -49,6 +50,36 @@ export default function LandingPage({ featuredListings }: LandingProps) {
         }, 16);
     };
 
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isSearching, setIsSearching] = useState(false);
+    const router = useRouter();
+
+    const handleAiSearch = async () => {
+        if (!searchQuery.trim() || isSearching) return;
+
+        setIsSearching(true);
+        try {
+            const { searchWithAI } = await import('@/app/actions/ai');
+            const filters = await searchWithAI(searchQuery);
+
+            // Construct query string
+            const params = new URLSearchParams();
+            if (filters.keywords) params.set('q', filters.keywords);
+            if (filters.minPrice) params.set('minPrice', filters.minPrice.toString());
+            if (filters.maxPrice) params.set('maxPrice', filters.maxPrice.toString());
+            if (filters.category) params.set('category', filters.category);
+            if (filters.brand) params.set('brand', filters.brand);
+
+            router.push(`/search?${params.toString()}`);
+        } catch (error) {
+            console.error(error);
+            // Fallback to simple search
+            router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
     return (
         <>
             <Menu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
@@ -91,14 +122,30 @@ export default function LandingPage({ featuredListings }: LandingProps) {
                                     className={styles.aiInput}
                                     placeholder="E.g., 'Show me vintage Gucci bags under 3000 MAD' or 'I need a formal dress for a wedding'"
                                     rows={3}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleAiSearch();
+                                        }
+                                    }}
                                 />
                             </div>
-                            <button className={styles.aiButton}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                    <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                    <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                                Search with AI
+                            <button
+                                className={styles.aiButton}
+                                onClick={handleAiSearch}
+                                disabled={isSearching}
+                            >
+                                {isSearching ? (
+                                    <span className={styles.spinner} />
+                                ) : (
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                )}
+                                {isSearching ? 'Analyzing...' : 'Search with AI'}
                             </button>
                         </div>
                         <div className={styles.aiHint}>

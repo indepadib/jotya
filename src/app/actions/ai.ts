@@ -74,3 +74,36 @@ export async function chatWithAI(message: string) {
         };
     }
 }
+
+export async function searchWithAI(query: string) {
+    try {
+        const completion = await ai.chat.completions.create({
+            model: 'google/gemini-2.0-flash-exp:free',
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are a search assistant for a marketplace. Extract search filters from the user's query.
+          Return a JSON object with:
+          - keywords (string): main search terms
+          - minPrice (number, optional)
+          - maxPrice (number, optional)
+          - category (string, optional)
+          - brand (string, optional)
+          
+          Example: "red gucci bag under 2000" -> {"keywords": "red bag", "brand": "Gucci", "maxPrice": 2000, "category": "Bags"}
+          `
+                },
+                { role: 'user', content: query }
+            ],
+            response_format: { type: 'json_object' }
+        });
+
+        const content = completion.choices[0].message.content;
+        if (!content) throw new Error('No response');
+
+        return JSON.parse(content);
+    } catch (error) {
+        console.error('AI Search Error:', error);
+        return { keywords: query }; // Fallback to simple search
+    }
+}
