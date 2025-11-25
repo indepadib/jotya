@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "rhel-openssl-1.0.x", "rhel-openssl-3.0.x"]
 }
 
@@ -17,6 +17,8 @@ model User {
   image            String?
   rating           Float         @default(0)
   verified         Boolean       @default(false)
+  isAdmin          Boolean       @default(false)
+  banned           Boolean       @default(false)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   favorites        Favorite[]
@@ -40,29 +42,30 @@ model Wallet {
 }
 
 model Listing {
-  id           String        @id @default(cuid())
-  title        String
-  description  String
-  price        Float
-  images       String
-  brand        String?
-  size         String?
-  color        String?
-  condition    String
-  gender       String?
-  category     String?
-  itemType     String?
-  subtype      String?
-  status       String        @default("AVAILABLE")
-  verified     Boolean       @default(false)
-  aiConfidence Float?
-  sellerId     String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  favoritedBy  Favorite[]
-  seller       User          @relation(fields: [sellerId], references: [id])
-  messages     Message[]
-  transactions Transaction[]
+  id               String        @id @default(cuid())
+  title            String
+  description      String
+  price            Float
+  images           String
+  brand            String?
+  size             String?
+  color            String?
+  condition        String
+  gender           String?
+  category         String?
+  itemType         String?
+  subtype          String?
+  status           String        @default("AVAILABLE")
+  moderationStatus String        @default("APPROVED")
+  verified         Boolean       @default(false)
+  aiConfidence     Float?
+  sellerId         String
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  favoritedBy      Favorite[]
+  seller           User          @relation(fields: [sellerId], references: [id])
+  messages         Message[]
+  transactions     Transaction[]
 }
 
 model Transaction {
@@ -93,9 +96,9 @@ model Message {
   sender     User     @relation("SentMessages", fields: [senderId], references: [id])
 
   // Offer fields
-  type        String   @default("TEXT") // TEXT, OFFER
+  type        String  @default("TEXT") // TEXT, OFFER
   offerAmount Float?
-  offerStatus String?  // PENDING, ACCEPTED, REJECTED
+  offerStatus String? // PENDING, ACCEPTED, REJECTED
 }
 
 model Favorite {
