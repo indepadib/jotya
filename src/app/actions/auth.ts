@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { sendEmailVerification } from './verification';
+import bcrypt from 'bcryptjs';
 
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 1 week
 
@@ -15,7 +16,7 @@ export async function signup(email: string, password: string, name: string) {
             return { error: 'User already exists' };
         }
 
-        const hashedPassword = await hashPassword(password);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         const user = await prisma.user.create({
             data: {
