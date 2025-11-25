@@ -2,8 +2,13 @@
 
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import { resend } from '@/lib/email';
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+import { checkAndUpdateTopRatedStatus } from '@/lib/badgeCalculator';
+import { Resend } from 'resend';
 import crypto from 'crypto';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Email Verification
 export async function sendEmailVerification() {
