@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { banUser, unbanUser, makeAdmin, removeAdmin } from '@/app/actions/admin';
+import { banUser, unbanUser, makeAdmin, removeAdmin, toggleVerification } from '@/app/actions/admin';
+import VerificationBadge from '@/components/VerificationBadge';
 import styles from '../admin.module.css';
 
 export default function UserManagementClient({ users }: { users: any[] }) {
@@ -31,6 +32,10 @@ export default function UserManagementClient({ users }: { users: any[] }) {
                 await makeAdmin(userId);
             }
         }
+    };
+
+    const handleToggleVerification = async (userId: string, field: 'phoneVerified' | 'emailVerified' | 'idVerified' | 'topRatedSeller') => {
+        await toggleVerification(userId, field);
     };
 
     return (
@@ -67,6 +72,7 @@ export default function UserManagementClient({ users }: { users: any[] }) {
                             <th>Listings</th>
                             <th>Sales</th>
                             <th>Rating</th>
+                            <th>Verification</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -79,6 +85,52 @@ export default function UserManagementClient({ users }: { users: any[] }) {
                                 <td>{user._count.listings}</td>
                                 <td>{user._count.sales}</td>
                                 <td>⭐ {user.rating.toFixed(1)}</td>
+                                <td>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <button
+                                            onClick={() => handleToggleVerification(user.id, 'topRatedSeller')}
+                                            style={{
+                                                padding: '4px 8px',
+                                                background: user.topRatedSeller ? '#ff9800' : 'transparent',
+                                                border: '1px solid var(--border)',
+                                                borderRadius: '4px',
+                                                fontSize: '0.75rem',
+                                                cursor: 'pointer',
+                                                color: user.topRatedSeller ? 'white' : 'var(--text-secondary)'
+                                            }}
+                                        >
+                                            🏆 Top
+                                        </button>
+                                        <button
+                                            onClick={() => handleToggleVerification(user.id, 'idVerified')}
+                                            style={{
+                                                padding: '4px 8px',
+                                                background: user.idVerified ? '#2196f3' : 'transparent',
+                                                border: '1px solid var(--border)',
+                                                borderRadius: '4px',
+                                                fontSize: '0.75rem',
+                                                cursor: 'pointer',
+                                                color: user.idVerified ? 'white' : 'var(--text-secondary)'
+                                            }}
+                                        >
+                                            ✓ ID
+                                        </button>
+                                        <button
+                                            onClick={() => handleToggleVerification(user.id, 'phoneVerified')}
+                                            style={{
+                                                padding: '4px 8px',
+                                                background: user.phoneVerified ? '#4caf50' : 'transparent',
+                                                border: '1px solid var(--border)',
+                                                borderRadius: '4px',
+                                                fontSize: '0.75rem',
+                                                cursor: 'pointer',
+                                                color: user.phoneVerified ? 'white' : 'var(--text-secondary)'
+                                            }}
+                                        >
+                                            📞 Phone
+                                        </button>
+                                    </div>
+                                </td>
                                 <td>
                                     {user.isAdmin && (
                                         <span className={`${styles.statusBadge} ${styles.approved}`}>

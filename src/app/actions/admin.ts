@@ -53,6 +53,24 @@ export async function removeAdmin(userId: string) {
     return { success: true };
 }
 
+// Verification Actions
+export async function toggleVerification(userId: string, field: 'phoneVerified' | 'emailVerified' | 'idVerified' | 'topRatedSeller') {
+    await requireAdmin();
+
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { [field]: true }
+    });
+
+    await prisma.user.update({
+        where: { id: userId },
+        data: { [field]: !user?.[field] }
+    });
+
+    revalidatePath('/admin/users');
+    return { success: true };
+}
+
 // Listing Moderation Actions
 export async function approveListing(listingId: string) {
     await requireAdmin();
