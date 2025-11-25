@@ -231,15 +231,67 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+    .container {
+        padding: 16px;
+    }
+
+    .header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .title {
+        font-size: 1.5rem;
+    }
+
     .statsGrid {
         grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .statCard {
+        padding: 20px;
     }
 
     .actionGrid {
         grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .actionCard {
+        padding: 24px;
+        min-height: 56px;
+        /* Better touch target */
     }
 
     .table {
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table table {
+        min-width: 600px;
+    }
+
+    /* Larger touch targets for buttons */
+    .backBtn {
+        min-height: 44px;
+        padding: 12px 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 12px;
+    }
+
+    .actionCard {
+        padding: 20px 16px;
+    }
+
+    .actionIcon svg {
+        width: 28px;
+        height: 28px;
     }
 }
