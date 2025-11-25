@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { startConversation } from '@/app/actions/chat';
 import { deleteListing } from '@/app/actions/listing';
 import { createOffer } from '@/app/actions/offer';
+import { blockUser } from '@/app/actions/report';
 import styles from './item.module.css';
 import Link from 'next/link';
 import ImageGallery from './ImageGallery';
@@ -11,6 +12,8 @@ import ExpandableDescription from './ExpandableDescription';
 import TopNav from '@/components/Layout/TopNav';
 import Menu from '@/components/Layout/Menu';
 import OfferModal from '@/components/OfferModal';
+import VerificationBadge from '@/components/VerificationBadge';
+import ReportModal from '@/components/ReportModal';
 
 interface Listing {
     id: string;
@@ -29,6 +32,10 @@ interface Listing {
         name: string;
         rating: number;
         createdAt: Date;
+        phoneVerified?: boolean;
+        emailVerified?: boolean;
+        idVerified?: boolean;
+        topRatedSeller?: boolean;
     };
 }
 
@@ -52,6 +59,7 @@ export default function ItemPageClient({
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showOfferModal, setShowOfferModal] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
 
     const isOwner = currentUserId === listing.sellerId;
 
@@ -59,10 +67,26 @@ export default function ItemPageClient({
         await createOffer(listing.id, amount);
     };
 
+    const handleBlock = async () => {
+        if (confirm('Block this user? You will no longer see their listings.')) {
+            await blockUser(listing.sellerId);
+            window.location.href = '/';
+        }
+    };
+
     return (
         <>
             <TopNav showBack={true} showMenu={true} onMenuClick={() => setIsMenuOpen(true)} />
             <Menu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+
+            {showReportModal && (
+                <ReportModal
+                    type="listing"
+                    targetId={listing.id}
+                    targetName={listing.title}
+                    onClose={() => setShowReportModal(false)}
+                />
+            )}
 
             <div className={styles.container}>
                 {/* Hero Image Gallery - Client Component for Interactivity */}
@@ -140,6 +164,13 @@ export default function ItemPageClient({
                             </div>
                             <div className={styles.sellerInfo}>
                                 <span className={styles.sellerName}>{listing.seller.name}</span>
+                                <VerificationBadge
+                                    phoneVerified={listing.seller.phoneVerified}
+                                    emailVerified={listing.seller.emailVerified}
+                                    idVerified={listing.seller.idVerified}
+                                    topRatedSeller={listing.seller.topRatedSeller}
+                                    size="sm"
+                                />
                                 <div className={styles.sellerMeta}>
                                     <span className={styles.sellerRating}>
                                         ★ {listing.seller.rating.toFixed(1)}
@@ -148,9 +179,41 @@ export default function ItemPageClient({
                                 </div>
                             </div>
                             <Link href={`/profile/${listing.sellerId}`} className={styles.viewProfileBtn}>
-                                View Profile →
+                                View Profile
                             </Link>
                         </div>
+                        {!isOwner && currentUserId && (
+                            <div style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                                <button
+                                    onClick={() => setShowReportModal(true)}
+                                    style={{
+                                        padding: '8px 16px',
+                                        background: 'transparent',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: 'var(--radius-md)',
+                                        color: 'var(--text-secondary)',
+                                        cursor: 'pointer',
+                                        fontSize: '0.9rem'
+                                    }}
+                                >
+                                    🚩 Report
+                                </button>
+                                <button
+                                    onClick={handleBlock}
+                                    style={{
+                                        padding: '8px 16px',
+                                        background: 'transparent',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: 'var(--radius-md)',
+                                        color: 'var(--text-secondary)',
+                                        cursor: 'pointer',
+                                        fontSize: '0.9rem'
+                                    }}
+                                >
+                                    🚫 Block
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     {/* Other Items from Seller */}

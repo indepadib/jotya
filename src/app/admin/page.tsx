@@ -82,7 +82,7 @@ export default async function AdminPage() {
                         )}
                     </Link>
 
-                    <Link href="/admin/listings" className={styles.actionCard}>
+                    <Link href="/admin /listings" className={styles.actionCard}>
                         <div className={styles.actionIcon}>📦</div>
                         <div className={styles.actionLabel}>Moderate Listings</div>
                         {stats.pendingListings > 0 && (
@@ -93,6 +93,11 @@ export default async function AdminPage() {
                     <Link href="/admin/transactions" className={styles.actionCard}>
                         <div className={styles.actionIcon}>💳</div>
                         <div className={styles.actionLabel}>View Transactions</div>
+                    </Link>
+
+                    <Link href="/admin/reports" className={styles.actionCard}>
+                        <div className={styles.actionIcon}>🚩</div>
+                        <div className={styles.actionLabel}>Review Reports</div>
                     </Link>
                 </div>
             </div>

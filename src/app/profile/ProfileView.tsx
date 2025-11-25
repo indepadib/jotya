@@ -7,6 +7,7 @@ import { markAsShipped } from '@/app/actions/fulfillment';
 import TopNav from '@/components/Layout/TopNav';
 import EditProfileModal from '@/components/Profile/EditProfileModal';
 import ChangePasswordModal from '@/components/Profile/ChangePasswordModal';
+import VerificationBadge from '@/components/VerificationBadge';
 import styles from './profile.module.css';
 
 interface ProfileViewProps {
@@ -43,6 +44,14 @@ export default function ProfileView({ user, stats }: ProfileViewProps) {
                     <span>{stats.avgRating}</span>
                     <span className={styles.reviewCount}>({user.reviewsReceived.length})</span>
                 </div>
+
+                <VerificationBadge
+                    phoneVerified={user.phoneVerified}
+                    emailVerified={user.emailVerified}
+                    idVerified={user.idVerified}
+                    topRatedSeller={user.topRatedSeller}
+                    size="md"
+                />
 
                 <div className={styles.headerActions}>
                     <Link href="/settings" className={styles.iconButton} aria-label="Settings">

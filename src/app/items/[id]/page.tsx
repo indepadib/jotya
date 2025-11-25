@@ -42,6 +42,10 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                     name: true,
                     rating: true,
                     createdAt: true,
+                    phoneVerified: true,
+                    emailVerified: true,
+                    idVerified: true,
+                    topRatedSeller: true,
                 }
             }
         }
@@ -75,6 +79,10 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                         name: true,
                         rating: true,
                         createdAt: true,
+                        phoneVerified: true,
+                        emailVerified: true,
+                        idVerified: true,
+                        topRatedSeller: true,
                     }
                 }
             }
@@ -109,6 +117,10 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                     name: true,
                     rating: true,
                     createdAt: true,
+                    phoneVerified: true,
+                    emailVerified: true,
+                    idVerified: true,
+                    topRatedSeller: true,
                 }
             }
         }
