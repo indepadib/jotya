@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma';
 
 export async function chatWithAI(message: string) {
     try {
+        console.log('[chatWithAI] Starting request with message:', message);
+
         // 1. First, let's try to understand if this is a search query
         const completion = await ai.chat.completions.create({
             model: 'google/gemini-2.0-flash-exp:free',
@@ -26,13 +28,22 @@ export async function chatWithAI(message: string) {
             response_format: { type: 'json_object' }
         });
 
+        console.log('[chatWithAI] Got completion from AI');
+
         const responseContent = completion.choices[0].message.content;
-        if (!responseContent) throw new Error('No response from AI');
+        if (!responseContent) {
+            console.error('[chatWithAI] No response content from AI');
+            throw new Error('No response from AI');
+        }
+
+        console.log('[chatWithAI] Response content:', responseContent);
 
         const result = JSON.parse(responseContent);
+        console.log('[chatWithAI] Parsed result:', result);
 
         // 2. If it's a search, let's actually search the database
         if (result.type === 'search') {
+            console.log('[chatWithAI] Processing search request with criteria:', result.criteria);
             const { criteria } = result;
 
             const where: any = { status: 'AVAILABLE' };
@@ -40,11 +51,15 @@ export async function chatWithAI(message: string) {
             if (criteria.category) where.category = { contains: criteria.category, mode: 'insensitive' };
             if (criteria.maxPrice) where.price = { lte: criteria.maxPrice };
 
+            console.log('[chatWithAI] Database query where clause:', where);
+
             const listings = await prisma.listing.findMany({
                 where,
                 take: 3,
                 orderBy: { createdAt: 'desc' }
             });
+
+            console.log('[chatWithAI] Found listings:', listings.length);
 
             return {
                 type: 'search_results',
@@ -61,13 +76,16 @@ export async function chatWithAI(message: string) {
             };
         }
 
+        console.log('[chatWithAI] Returning text response');
         return {
             type: 'text',
             message: result.message
         };
 
     } catch (error) {
-        console.error('AI Error:', error);
+        console.error('[chatWithAI] ERROR:', error);
+        console.error('[chatWithAI] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+        console.error('[chatWithAI] Error details:', JSON.stringify(error, null, 2));
         return {
             type: 'text',
             message: "I'm having a little trouble connecting right now. Please try again in a moment!"
