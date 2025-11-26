@@ -26,22 +26,35 @@ export async function searchListings(filters: SearchFilters) {
         status: 'AVAILABLE',
     };
 
+    // Build AND conditions array
+    const andConditions: any[] = [];
+
+    // Handle query search (title, description)
     if (filters.query) {
-        where.OR = [
-            { title: { contains: filters.query } },
-            { description: { contains: filters.query } },
-            { brand: { contains: filters.query } }
-        ];
+        andConditions.push({
+            OR: [
+                { title: { contains: filters.query, mode: 'insensitive' } },
+                { description: { contains: filters.query, mode: 'insensitive' } }
+            ]
+        });
+    }
+
+    // Handle brand as a separate AND condition
+    if (filters.brand) {
+        andConditions.push({
+            brand: { contains: filters.brand, mode: 'insensitive' }
+        });
+    }
+
+    // Add andConditions to where clause if any
+    if (andConditions.length > 0) {
+        where.AND = andConditions;
     }
 
     if (filters.gender && filters.gender !== 'all') where.gender = filters.gender;
     if (filters.category && filters.category !== 'all') where.category = filters.category;
     if (filters.itemType && filters.itemType !== 'all') where.itemType = filters.itemType;
     if (filters.subtype && filters.subtype !== 'all') where.subtype = filters.subtype;
-
-    if (filters.brand) {
-        where.brand = { contains: filters.brand };
-    }
 
     if (filters.condition) {
         where.condition = filters.condition;
