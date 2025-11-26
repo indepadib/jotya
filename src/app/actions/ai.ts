@@ -56,8 +56,8 @@ export async function chatWithAI(message: string) {
             console.log('[chatWithAI] Processing search request with criteria:', result.criteria);
             const { criteria } = result;
 
-            // Use the shared search logic
-            const listings = await searchListings({
+            // Strategy 1: Strict Search (Query + Brand + Category etc.)
+            let listings = await searchListings({
                 query: criteria.query,
                 brand: criteria.brand,
                 category: criteria.category,
@@ -65,7 +65,39 @@ export async function chatWithAI(message: string) {
                 maxPrice: criteria.maxPrice
             });
 
-            console.log('[chatWithAI] Found listings:', listings.length);
+            let searchMessage = `I found ${listings.length} items matching your search!`;
+
+            // Strategy 2: Fallback - If no results, try relaxing the query
+            if (listings.length === 0) {
+                console.log('[chatWithAI] Strict search failed. Trying fallbacks...');
+
+                // 2a. If we have a brand, try showing everything from that brand
+                if (criteria.brand) {
+                    console.log('[chatWithAI] Fallback: Searching brand only:', criteria.brand);
+                    const brandListings = await searchListings({ brand: criteria.brand });
+
+                    if (brandListings.length > 0) {
+                        listings = brandListings;
+                        searchMessage = `I couldn't find exactly "${criteria.query || ''}" from ${criteria.brand}, but here are other items from this brand you might like:`;
+                    }
+                }
+
+                // 2b. If still no results (or no brand), try searching just the keywords (ignoring category/brand constraints if they were strict)
+                if (listings.length === 0 && criteria.query) {
+                    console.log('[chatWithAI] Fallback: Searching keywords only:', criteria.query);
+                    // Try to broaden terms: "t-shirt" -> "shirt"
+                    const broadQuery = criteria.query.replace('t-shirt', 'shirt').replace('sneakers', 'shoes');
+
+                    const keywordListings = await searchListings({ query: broadQuery });
+
+                    if (keywordListings.length > 0) {
+                        listings = keywordListings;
+                        searchMessage = `I couldn't find exact matches, but here are some similar items matching "${broadQuery}":`;
+                    }
+                }
+            }
+
+            console.log('[chatWithAI] Final listings count:', listings.length);
 
             // Take top 3 for chat
             const topListings = listings.slice(0, 3);
@@ -73,8 +105,8 @@ export async function chatWithAI(message: string) {
             return {
                 type: 'search_results',
                 message: topListings.length > 0
-                    ? `I found ${listings.length} items matching your search!`
-                    : "I couldn't find exactly that, but here are some other items you might like.",
+                    ? searchMessage
+                    : "I couldn't find anything matching that right now. Try searching for a different brand or category!",
                 items: topListings.map(l => ({
                     id: l.id,
                     title: l.title,
