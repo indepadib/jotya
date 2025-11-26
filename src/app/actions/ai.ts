@@ -174,4 +174,4 @@ export async function generateListingDescription(input: string | any, type?: 'ge
 }
 
 export const analyzeListingImage = generateListingDescription;
-export { generateListingDescription };
+
