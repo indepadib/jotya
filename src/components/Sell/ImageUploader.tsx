@@ -49,7 +49,14 @@ export default function ImageUploader({ onImagesChange, initialImages }: ImageUp
                     .upload(filePath, compressedFile);
 
                 if (uploadError) {
-                    console.error('Error uploading image:', uploadError);
+                    console.error('Supabase upload failed, falling back to Base64:', uploadError);
+                    // Fallback: Convert to Base64
+                    const base64 = await new Promise<string>((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result as string);
+                        reader.readAsDataURL(compressedFile);
+                    });
+                    newUrls.push(base64);
                     continue;
                 }
 
@@ -67,7 +74,7 @@ export default function ImageUploader({ onImagesChange, initialImages }: ImageUp
             onImagesChange(updatedPreviews);
         } catch (error) {
             console.error('Upload error:', error);
-            alert('Failed to upload images. Please try again.');
+            alert('Image processing failed. Please try again.');
         } finally {
             setUploading(false);
         }
