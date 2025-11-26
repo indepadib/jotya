@@ -85,15 +85,19 @@ export async function chatWithAI(message: string) {
     } catch (error) {
         console.error('[chatWithAI] ERROR:', error);
         console.error('[chatWithAI] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-        console.error('[chatWithAI] Error details:', JSON.stringify(error, null, 2));
 
-        // TEMPORARY: Expose error for debugging
+        // Check if it's a rate limit error
         const errorMessage = error instanceof Error ? error.message : String(error);
-        const errorDetails = error instanceof Error && error.stack ? error.stack.split('\n').slice(0, 3).join('\n') : '';
+        if (errorMessage.includes('429') || errorMessage.includes('Rate limit')) {
+            return {
+                type: 'text',
+                message: "I'm temporarily unavailable due to high demand. Please try again in a few moments, or contact support if this persists."
+            };
+        }
 
         return {
             type: 'text',
-            message: `🔧 DEBUG MODE: ${errorMessage}\n\nDetails: ${errorDetails || 'No additional details'}`
+            message: "I'm having a little trouble connecting right now. Please try again in a moment!"
         };
     }
 }
