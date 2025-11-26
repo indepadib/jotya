@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import styles from './FloatingAIChat.module.css';
 
 interface OfferMessageProps {
@@ -8,6 +9,7 @@ interface OfferMessageProps {
     price: number;
     originalPrice?: number;
     status?: 'pending' | 'accepted' | 'rejected';
+    productId?: string;
     onAccept?: () => void;
     onDecline?: () => void;
 }
@@ -18,19 +20,44 @@ export default function OfferMessage({
     price,
     originalPrice,
     status = 'pending',
+    productId,
     onAccept,
     onDecline
 }: OfferMessageProps) {
+    const router = useRouter();
+
+    const handleCardClick = () => {
+        if (productId) {
+            router.push(`/items/${productId}`);
+        }
+    };
+
     return (
-        <div className={styles.offerCard} style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: '12px',
-            overflow: 'hidden',
-            marginTop: '8px',
-            marginBottom: '8px',
-            maxWidth: '100%'
-        }}>
+        <div
+            className={styles.offerCard}
+            onClick={handleCardClick}
+            style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                marginTop: '8px',
+                marginBottom: '8px',
+                maxWidth: '100%',
+                cursor: productId ? 'pointer' : 'default',
+                transition: 'transform 0.2s, box-shadow 0.2s'
+            }}
+            onMouseEnter={(e) => {
+                if (productId) {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                }
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+            }}
+        >
             <div style={{ position: 'relative', height: '140px', overflow: 'hidden' }}>
                 <img
                     src={productImage}

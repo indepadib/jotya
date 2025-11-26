@@ -55,29 +55,32 @@ export default function FloatingAIChat() {
             const response = await chatWithAI(userMsg.content);
 
             if (response.type === 'search_results' && response.items) {
-                // Add text message first
-                setMessages(prev => [...prev, {
-                    id: Date.now().toString(),
-                    type: 'text',
-                    sender: 'ai',
-                    content: response.message
-                }]);
-
-                // Add offer/product cards
-                response.items.forEach((item: any, index: number) => {
-                    setMessages(prev => [...prev, {
+                // Create all messages at once (text + all product cards)
+                const newMessages = [
+                    // Text message first
+                    {
+                        id: Date.now().toString(),
+                        type: 'text' as const,
+                        sender: 'ai' as const,
+                        content: response.message
+                    },
+                    // Then all product cards
+                    ...response.items.map((item: any, index: number) => ({
                         id: (Date.now() + index + 1).toString(),
-                        type: 'offer',
-                        sender: 'ai',
+                        type: 'offer' as const,
+                        sender: 'ai' as const,
                         content: {
                             productImage: item.image,
                             productName: item.title,
                             price: item.price,
                             originalPrice: item.price * 1.2, // Mock original price
-                            status: 'pending'
+                            status: 'pending',
+                            productId: item.id // Add product ID for linking
                         }
-                    }]);
-                });
+                    }))
+                ];
+
+                setMessages(prev => [...prev, ...newMessages]);
             } else {
                 setMessages(prev => [...prev, {
                     id: Date.now().toString(),
