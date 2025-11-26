@@ -54,27 +54,29 @@ export default function LandingPage({ featuredListings }: LandingProps) {
     const [isSearching, setIsSearching] = useState(false);
     const router = useRouter();
 
+    const [aiResults, setAiResults] = useState<any[]>([]);
+    const [aiMessage, setAiMessage] = useState('');
+
     const handleAiSearch = async () => {
         if (!searchQuery.trim() || isSearching) return;
 
         setIsSearching(true);
+        setAiResults([]);
+        setAiMessage('');
+
         try {
-            const { searchWithAI } = await import('@/app/actions/ai');
-            const filters = await searchWithAI(searchQuery);
+            const { chatWithAI } = await import('@/app/actions/ai');
+            const response = await chatWithAI(searchQuery);
 
-            // Construct query string
-            const params = new URLSearchParams();
-            if (filters.keywords) params.set('q', filters.keywords);
-            if (filters.minPrice) params.set('minPrice', filters.minPrice.toString());
-            if (filters.maxPrice) params.set('maxPrice', filters.maxPrice.toString());
-            if (filters.category) params.set('category', filters.category);
-            if (filters.brand) params.set('brand', filters.brand);
-
-            router.push(`/search?${params.toString()}`);
+            if (response.type === 'search_results' && response.items) {
+                setAiMessage(response.message);
+                setAiResults(response.items);
+            } else {
+                setAiMessage(response.message);
+            }
         } catch (error) {
             console.error(error);
-            // Fallback to simple search
-            router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+            setAiMessage("Sorry, I couldn't process your search. Please try again.");
         } finally {
             setIsSearching(false);
         }
@@ -151,6 +153,90 @@ export default function LandingPage({ featuredListings }: LandingProps) {
                         <div className={styles.aiHint}>
                             <span className={styles.aiHintText}>✨ Try: "red designer handbag" or "Nike shoes size 42"</span>
                         </div>
+
+                        {/* AI Results */}
+                        {aiMessage && (
+                            <div style={{
+                                marginTop: '24px',
+                                padding: '16px',
+                                background: 'var(--surface)',
+                                borderRadius: '12px',
+                                border: '1px solid var(--border)'
+                            }}>
+                                <p style={{ color: 'var(--text-primary)', marginBottom: aiResults.length > 0 ? '16px' : '0' }}>
+                                    {aiMessage}
+                                </p>
+
+                                {aiResults.length > 0 && (
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                                        gap: '16px'
+                                    }}>
+                                        {aiResults.map((item: any) => (
+                                            <Link
+                                                key={item.id}
+                                                href={`/items/${item.id}`}
+                                                style={{
+                                                    textDecoration: 'none',
+                                                    color: 'inherit',
+                                                    background: 'var(--background)',
+                                                    borderRadius: '12px',
+                                                    overflow: 'hidden',
+                                                    border: '1px solid var(--border)',
+                                                    transition: 'transform 0.2s, box-shadow 0.2s'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.transform = 'translateY(-4px)';
+                                                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.transform = 'translateY(0)';
+                                                    e.currentTarget.style.boxShadow = 'none';
+                                                }}
+                                            >
+                                                <img
+                                                    src={item.image}
+                                                    alt={item.title}
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '200px',
+                                                        objectFit: 'cover'
+                                                    }}
+                                                />
+                                                <div style={{ padding: '12px' }}>
+                                                    <div style={{
+                                                        fontSize: '0.85rem',
+                                                        color: 'var(--text-secondary)',
+                                                        marginBottom: '4px'
+                                                    }}>
+                                                        {item.brand}
+                                                    </div>
+                                                    <div style={{
+                                                        fontSize: '0.95rem',
+                                                        fontWeight: 600,
+                                                        color: 'var(--text-primary)',
+                                                        marginBottom: '8px',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        whiteSpace: 'nowrap'
+                                                    }}>
+                                                        {item.title}
+                                                    </div>
+                                                    <div style={{
+                                                        fontSize: '1.1rem',
+                                                        fontWeight: 700,
+                                                        color: 'var(--primary)'
+                                                    }}>
+                                                        {item.price} MAD
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </section>
 
