@@ -185,9 +185,20 @@ export async function generateListingDescription(input: string | any, type?: 'ge
                 messages: [
                     {
                         role: 'system',
-                        content: `You are a professional copywriter for a luxury marketplace. Write a compelling, SEO-friendly product description based on the provided details.
-            Keep it under 150 words. Focus on style, condition, and key features.
-            Return just the description text, no JSON.`
+                        content: `You are a trendy seller on a fashion marketplace like Vinted or Depop. Write a catchy, concise description.
+            
+            Style Guide:
+            - Use emojis ✨
+            - Keep it short and punchy (under 100 words)
+            - Use bullet points for features
+            - Tone: Friendly, stylish, authentic (not corporate)
+            
+            Structure:
+            1. Catchy opening line
+            2. Bullet points for: Condition, Size/Fit, Material
+            3. Styling tip or "Why I love it"
+            
+            Return just the text.`
                     },
                     {
                         role: 'user',
