@@ -59,6 +59,7 @@ model Listing {
   brand            String?
   size             String?
   color            String?
+  style            String?
   condition        String
   gender           String?
   category         String?

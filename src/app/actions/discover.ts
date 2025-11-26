@@ -39,7 +39,7 @@ export async function getRecommendedItems(likedItemIds: string[]) {
         // 1. Fetch details of liked items to understand user taste
         const likedItems = await prisma.listing.findMany({
             where: { id: { in: likedItemIds } },
-            select: { title: true, brand: true, category: true, color: true }
+            select: { title: true, brand: true, category: true, style: true, color: true }
         });
 
         // 2. Ask AI to analyze taste and generate a search query
