@@ -60,22 +60,27 @@ export default function LandingPage({ featuredListings }: LandingProps) {
     const handleAiSearch = async () => {
         if (!searchQuery.trim() || isSearching) return;
 
+        console.log('[Landing AI] Starting search:', searchQuery);
         setIsSearching(true);
         setAiResults([]);
         setAiMessage('');
 
         try {
             const { chatWithAI } = await import('@/app/actions/ai');
+            console.log('[Landing AI] Calling chatWithAI...');
             const response = await chatWithAI(searchQuery);
+            console.log('[Landing AI] Response:', response);
 
             if (response.type === 'search_results' && response.items) {
+                console.log('[Landing AI] Got search results:', response.items.length);
                 setAiMessage(response.message);
                 setAiResults(response.items);
             } else {
+                console.log('[Landing AI] Got text response');
                 setAiMessage(response.message);
             }
         } catch (error) {
-            console.error(error);
+            console.error('[Landing AI] Error:', error);
             setAiMessage("Sorry, I couldn't process your search. Please try again.");
         } finally {
             setIsSearching(false);
