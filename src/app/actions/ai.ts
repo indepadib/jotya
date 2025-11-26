@@ -86,9 +86,14 @@ export async function chatWithAI(message: string) {
         console.error('[chatWithAI] ERROR:', error);
         console.error('[chatWithAI] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
         console.error('[chatWithAI] Error details:', JSON.stringify(error, null, 2));
+
+        // TEMPORARY: Expose error for debugging
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorDetails = error instanceof Error && error.stack ? error.stack.split('\n').slice(0, 3).join('\n') : '';
+
         return {
             type: 'text',
-            message: "I'm having a little trouble connecting right now. Please try again in a moment!"
+            message: `🔧 DEBUG MODE: ${errorMessage}\n\nDetails: ${errorDetails || 'No additional details'}`
         };
     }
 }
