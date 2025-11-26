@@ -7,12 +7,21 @@ import { searchListings } from './search';
 // Fetch initial random items for a category
 export async function getInitialItems(gender: string, category: string) {
     try {
+        console.log('[Discover] Fetching items for:', { gender, category });
+
         const where: any = {
             status: 'AVAILABLE',
         };
 
-        if (gender && gender !== 'all') where.gender = gender;
-        if (category && category !== 'all') where.category = category;
+        // Use case-insensitive contains for more lenient matching
+        if (gender && gender !== 'all') {
+            where.gender = { contains: gender, mode: 'insensitive' };
+        }
+        if (category && category !== 'all') {
+            where.category = { contains: category, mode: 'insensitive' };
+        }
+
+        console.log('[Discover] Query where:', where);
 
         // Get 20 random items (simulated by taking latest for now, or random skip if we had many)
         // For MVP, just take latest 20
@@ -22,6 +31,8 @@ export async function getInitialItems(gender: string, category: string) {
             orderBy: { createdAt: 'desc' },
             include: { seller: { select: { name: true, rating: true } } }
         });
+
+        console.log('[Discover] Found items:', listings.length);
 
         // Shuffle them for "randomness"
         return listings.sort(() => Math.random() - 0.5);
