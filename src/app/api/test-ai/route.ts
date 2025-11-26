@@ -5,11 +5,11 @@ import { ai } from '@/lib/ai';
 
 export async function GET() {
     try {
-        console.log('Testing OpenRouter connection...');
-        console.log('API Key:', process.env.OPENROUTER_API_KEY ? 'Present' : 'Missing');
+        console.log('Testing OpenAI connection...');
+        console.log('API Key:', process.env.OPENAI_API_KEY ? 'Present' : 'Missing');
 
         const completion = await ai.chat.completions.create({
-            model: 'google/gemini-2.0-flash-exp:free',
+            model: 'gpt-4o-mini',
             messages: [
                 {
                     role: 'system',

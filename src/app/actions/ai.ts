@@ -9,7 +9,7 @@ export async function chatWithAI(message: string) {
 
         // 1. First, let's try to understand if this is a search query
         const completion = await ai.chat.completions.create({
-            model: 'google/gemini-2.0-flash-exp:free',
+            model: 'gpt-4o-mini', // Fast and cheap OpenAI model
             messages: [
                 {
                     role: 'system',
@@ -105,7 +105,7 @@ export async function chatWithAI(message: string) {
 export async function searchWithAI(query: string) {
     try {
         const completion = await ai.chat.completions.create({
-            model: 'google/gemini-2.0-flash-exp:free',
+            model: 'gpt-4o-mini',
             messages: [
                 {
                     role: 'system',
@@ -140,7 +140,7 @@ export async function generateListingDescription(input: string | any, type?: 'ge
         // Case 1: Input is an object (Metadata for text generation)
         if (typeof input === 'object') {
             const completion = await ai.chat.completions.create({
-                model: 'google/gemini-2.0-flash-exp:free',
+                model: 'gpt-4o-mini',
                 messages: [
                     {
                         role: 'system',
@@ -173,7 +173,7 @@ export async function generateListingDescription(input: string | any, type?: 'ge
           `;
 
         const completion = await ai.chat.completions.create({
-            model: 'google/gemini-2.0-flash-exp:free',
+            model: 'gpt-4o-mini',
             messages: [
                 {
                     role: 'system',
