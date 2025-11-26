@@ -107,3 +107,71 @@ export async function searchWithAI(query: string) {
         return { keywords: query }; // Fallback to simple search
     }
 }
+
+export async function generateListingDescription(input: string | any, type?: 'general' | 'label') {
+    try {
+        // Case 1: Input is an object (Metadata for text generation)
+        if (typeof input === 'object') {
+            const completion = await ai.chat.completions.create({
+                model: 'google/gemini-2.0-flash-exp:free',
+                messages: [
+                    {
+                        role: 'system',
+                        content: `You are a professional copywriter for a luxury marketplace. Write a compelling, SEO-friendly product description based on the provided details.
+            Keep it under 150 words. Focus on style, condition, and key features.
+            Return just the description text, no JSON.`
+                    },
+                    {
+                        role: 'user',
+                        content: `Write a description for this item: ${JSON.stringify(input)}`
+                    }
+                ]
+            });
+            return completion.choices[0].message.content;
+        }
+
+        // Case 2: Input is a string (Image Base64 for analysis)
+        const prompt = type === 'label'
+            ? "Analyze this fashion item label. Is it authentic? Return JSON with { isAuthentic: boolean, brand: string, checks: [{name: string, passed: boolean}] }"
+            : `You are a fashion expert. Analyze the image and generate a listing description for a marketplace.
+          Return a JSON object with:
+          - title (string): A catchy, descriptive title
+          - description (string): A detailed description including color, style, and potential condition
+          - category (string): The most likely category
+          - brand (string, optional): If a logo is visible
+          - color (string): The dominant color
+          - material (string, optional)
+          - style (string, optional)
+          - fit (string, optional)
+          `;
+
+        const completion = await ai.chat.completions.create({
+            model: 'google/gemini-2.0-flash-exp:free',
+            messages: [
+                {
+                    role: 'system',
+                    content: prompt
+                },
+                {
+                    role: 'user',
+                    content: [
+                        { type: "text", text: "Analyze this item." },
+                        { type: "image_url", image_url: { url: input } }
+                    ]
+                }
+            ],
+            response_format: { type: 'json_object' }
+        });
+
+        const content = completion.choices[0].message.content;
+        if (!content) throw new Error('No response');
+
+        return JSON.parse(content);
+    } catch (error) {
+        console.error('AI Description Error:', error);
+        return null;
+    }
+}
+
+export const analyzeListingImage = generateListingDescription;
+export { generateListingDescription };
