@@ -3,12 +3,27 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { getUnreadMessageCount } from '@/app/actions/notifications';
+import NotificationBadge from '@/components/NotificationBadge';
 import styles from './DesktopHeader.module.css';
 
 export default function DesktopHeader() {
     const [profileOpen, setProfileOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
+
+    // Fetch unread count
+    useEffect(() => {
+        const fetchUnreadCount = async () => {
+            const count = await getUnreadMessageCount();
+            setUnreadCount(count);
+        };
+        fetchUnreadCount();
+
+        const interval = setInterval(fetchUnreadCount, 30000);
+        return () => clearInterval(interval);
+    }, [pathname]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -48,11 +63,13 @@ export default function DesktopHeader() {
                         className={styles.profileBtn}
                         onClick={() => setProfileOpen(!profileOpen)}
                         aria-label="User menu"
+                        style={{ position: 'relative' }}
                     >
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                             <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
+                        <NotificationBadge count={unreadCount} />
                     </button>
 
                     {profileOpen && (
@@ -83,11 +100,25 @@ export default function DesktopHeader() {
                                 </svg>
                                 Wallet
                             </Link>
-                            <Link href="/inbox" onClick={() => setProfileOpen(false)}>
+                            <Link href="/inbox" onClick={() => setProfileOpen(false)} style={{ position: 'relative' }}>
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                                     <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="2" />
                                 </svg>
                                 Messages
+                                <div style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)' }}>
+                                    {unreadCount > 0 && (
+                                        <span style={{
+                                            background: '#f44336',
+                                            color: 'white',
+                                            fontSize: '11px',
+                                            fontWeight: 'bold',
+                                            padding: '2px 6px',
+                                            borderRadius: '10px'
+                                        }}>
+                                            {unreadCount}
+                                        </span>
+                                    )}
+                                </div>
                             </Link>
                             <Link href="/settings" onClick={() => setProfileOpen(false)}>
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">

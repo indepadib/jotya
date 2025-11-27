@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, use } from 'react';
 import { getMessages, sendMessage } from '@/app/actions/chat';
 import { respondToOffer } from '@/app/actions/offer';
+import { markConversationAsRead } from '@/app/actions/notifications';
 
 import styles from './chat.module.css';
 import Link from 'next/link';
@@ -31,6 +32,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         };
 
         fetchMessages();
+
+        // Mark messages as read when opening conversation
+        markConversationAsRead(id);
 
         // Poll for new messages every 3 seconds
         const interval = setInterval(fetchMessages, 3000);
