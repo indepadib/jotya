@@ -37,6 +37,36 @@ export default async function ProfilePage() {
         return <ProfileView user={user} stats={stats} />;
     } catch (error) {
         console.error('[Profile] Error:', error);
-        throw error;
+
+        // Show error details to user for debugging
+        return (
+            <div style={{ padding: '40px', maxWidth: '800px', margin: '0 auto' }}>
+                <h1>Profile Error</h1>
+                <div style={{
+                    background: '#fee',
+                    padding: '20px',
+                    borderRadius: '8px',
+                    marginTop: '20px',
+                    fontFamily: 'monospace',
+                    fontSize: '14px'
+                }}>
+                    <strong>Error:</strong>
+                    <pre style={{ whiteSpace: 'pre-wrap', marginTop: '10px' }}>
+                        {error instanceof Error ? error.message : String(error)}
+                    </pre>
+                    {error instanceof Error && error.stack && (
+                        <>
+                            <strong style={{ marginTop: '20px', display: 'block' }}>Stack:</strong>
+                            <pre style={{ whiteSpace: 'pre-wrap', marginTop: '10px', fontSize: '12px' }}>
+                                {error.stack}
+                            </pre>
+                        </>
+                    )}
+                </div>
+                <p style={{ marginTop: '20px' }}>
+                    <a href="/" style={{ color: '#FF4081' }}>← Back to Home</a>
+                </p>
+            </div>
+        );
     }
 }
