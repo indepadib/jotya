@@ -4,30 +4,39 @@ import { redirect } from 'next/navigation';
 import ProfileView from './ProfileView';
 
 export default async function ProfilePage() {
-    const session = await getSession();
-    if (!session) redirect('/login');
+    try {
+        const session = await getSession();
+        console.log('[Profile] Session:', session);
 
-    const user = await prisma.user.findUnique({
-        where: { id: session },
-        include: {
-            listings: { where: { status: 'AVAILABLE' } },
-            sales: { orderBy: { createdAt: 'desc' } },
-            purchases: true,
-            reviewsReceived: true,
-            wallet: true
-        }
-    });
+        if (!session) redirect('/login');
 
-    if (!user) redirect('/login');
+        const user = await prisma.user.findUnique({
+            where: { id: session },
+            include: {
+                listings: { where: { status: 'AVAILABLE' } },
+                sales: { orderBy: { createdAt: 'desc' } },
+                purchases: true,
+                reviewsReceived: true,
+                wallet: true
+            }
+        });
 
-    // Calculate KPIs
-    const stats = {
-        totalListings: user.listings.length,
-        totalSales: user.sales.length,
-        totalRevenue: user.sales.reduce((sum, sale) => sum + sale.netAmount, 0),
-        avgRating: user.rating.toFixed(1),
-        walletBalance: user.wallet?.balance || 0
-    };
+        console.log('[Profile] User found:', !!user);
 
-    return <ProfileView user={user} stats={stats} />;
+        if (!user) redirect('/login');
+
+        // Calculate KPIs
+        const stats = {
+            totalListings: user.listings.length,
+            totalSales: user.sales.length,
+            totalRevenue: user.sales.reduce((sum, sale) => sum + sale.netAmount, 0),
+            avgRating: user.rating.toFixed(1),
+            walletBalance: user.wallet?.balance || 0
+        };
+
+        return <ProfileView user={user} stats={stats} />;
+    } catch (error) {
+        console.error('[Profile] Error:', error);
+        throw error;
+    }
 }
