@@ -160,9 +160,37 @@ export default function SellForm({ initialData }: SellFormProps) {
                         checks: prev?.checks || result.checks
                     }));
 
-                    // Auto-fill if empty
-                    if (!brand && result.brand) setBrand(result.brand);
-                    if (!color && result.color) setColor(result.color);
+                    // Auto-fill brand if detected and not already set
+                    if (!brand && result.brand && brands.length > 0) {
+                        // Find matching brand in the brands list (case-insensitive)
+                        const matchingBrand = brands.find(b =>
+                            b.name.toLowerCase() === result.brand.toLowerCase()
+                        );
+                        if (matchingBrand) {
+                            setBrandId(matchingBrand.id);
+                            setBrand(matchingBrand.name);
+                        } else {
+                            // If brand not found in list, use "other" and set custom brand
+                            setBrandId('other');
+                            setCustomBrand(result.brand);
+                            setBrand(result.brand);
+                        }
+                    }
+
+                    // Auto-fill color if detected and not already set
+                    if (!color && result.color && colors.length > 0) {
+                        // Find matching color in the colors list (case-insensitive)
+                        const matchingColor = colors.find(c =>
+                            c.name.toLowerCase() === result.color.toLowerCase() ||
+                            result.color.toLowerCase().includes(c.name.toLowerCase())
+                        );
+                        if (matchingColor) {
+                            setColorId(matchingColor.id);
+                            setColor(matchingColor.name);
+                        }
+                    }
+
+                    // Auto-fill title if not set
                     if (!title) {
                         const richTitle = `${result.brand || ''} ${result.style || result.category || 'Item'} - ${result.color || ''} ${result.fit ? `(${result.fit})` : ''}`;
                         setTitle(richTitle.trim());
@@ -172,7 +200,7 @@ export default function SellForm({ initialData }: SellFormProps) {
             };
             analyze();
         }
-    }, [images, aiData, isAnalyzing, brand, color, title, initialData]);
+    }, [images, aiData, isAnalyzing, brand, color, title, initialData, brands, colors]);
 
     // Trigger Label Analysis when label image is uploaded
     useEffect(() => {
