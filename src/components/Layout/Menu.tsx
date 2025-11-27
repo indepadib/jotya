@@ -38,6 +38,15 @@ export default function Menu({ isOpen, onClose }: MenuProps) {
                 </div>
 
                 <nav className={styles.nav}>
+                    <Link href="/discover" className={styles.link} onClick={onClose}>
+                        <span className={styles.icon}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </span>
+                        <span>🔥 Discover</span>
+                    </Link>
                     <Link href="/profile" className={styles.link} onClick={onClose}>
                         <span className={styles.icon}>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">

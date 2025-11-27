@@ -107,7 +107,7 @@ export default function LandingPage({ featuredListings }: LandingProps) {
                             Buy and sell authenticated premium fashion, verified by AI
                         </p>
                         <div className={styles.heroCtas}>
-                            <Link href="/search" className="btn btn-primary">Explore Now</Link>
+                            <Link href="/discover" className="btn btn-primary">🔥 Start Discovering</Link>
                             <Link href="/sell" className="btn btn-secondary">Start Selling</Link>
                         </div>
                     </div>
