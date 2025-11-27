@@ -160,36 +160,6 @@ export default function SellForm({ initialData }: SellFormProps) {
                         checks: prev?.checks || result.checks
                     }));
 
-                    // Auto-fill brand if detected and not already set
-                    if (!brand && result.brand && brands.length > 0) {
-                        // Find matching brand in the brands list (case-insensitive)
-                        const matchingBrand = brands.find(b =>
-                            b.name.toLowerCase() === result.brand.toLowerCase()
-                        );
-                        if (matchingBrand) {
-                            setBrandId(matchingBrand.id);
-                            setBrand(matchingBrand.name);
-                        } else {
-                            // If brand not found in list, use "other" and set custom brand
-                            setBrandId('other');
-                            setCustomBrand(result.brand);
-                            setBrand(result.brand);
-                        }
-                    }
-
-                    // Auto-fill color if detected and not already set
-                    if (!color && result.color && colors.length > 0) {
-                        // Find matching color in the colors list (case-insensitive)
-                        const matchingColor = colors.find(c =>
-                            c.name.toLowerCase() === result.color.toLowerCase() ||
-                            result.color.toLowerCase().includes(c.name.toLowerCase())
-                        );
-                        if (matchingColor) {
-                            setColorId(matchingColor.id);
-                            setColor(matchingColor.name);
-                        }
-                    }
-
                     // Auto-fill title if not set
                     if (!title) {
                         const richTitle = `${result.brand || ''} ${result.style || result.category || 'Item'} - ${result.color || ''} ${result.fit ? `(${result.fit})` : ''}`;
@@ -200,7 +170,62 @@ export default function SellForm({ initialData }: SellFormProps) {
             };
             analyze();
         }
-    }, [images, aiData, isAnalyzing, brand, color, title, initialData, brands, colors]);
+    }, [images, aiData, isAnalyzing, title, initialData]);
+
+    // Auto-fill brand when brands are loaded and AI has detected a brand
+    useEffect(() => {
+        if (aiData?.brand && brands.length > 0 && !brandId && !brand) {
+            // Find matching brand in the brands list (case-insensitive)
+            const matchingBrand = brands.find(b =>
+                b.name.toLowerCase() === aiData.brand!.toLowerCase()
+            );
+            if (matchingBrand) {
+                setBrandId(matchingBrand.id);
+                setBrand(matchingBrand.name);
+            } else {
+                // If brand not found in list, use "other" and set custom brand
+                setBrandId('other');
+                setCustomBrand(aiData.brand);
+                setBrand(aiData.brand);
+            }
+        }
+    }, [aiData, brands, brandId, brand]);
+
+    // Auto-fill color when colors are loaded and AI has detected a color
+    useEffect(() => {
+        if (aiData?.color && colors.length > 0 && !colorId && !color) {
+            const detectedColor = aiData.color.toLowerCase();
+            console.log('AI detected color:', detectedColor);
+            console.log('Available colors:', colors.map(c => c.name));
+
+            // Try exact match first
+            let matchingColor = colors.find(c =>
+                c.name.toLowerCase() === detectedColor
+            );
+
+            // Try partial match (detected color contains our color name)
+            if (!matchingColor) {
+                matchingColor = colors.find(c =>
+                    detectedColor.includes(c.name.toLowerCase())
+                );
+            }
+
+            // Try reverse partial match (our color name contains detected color)
+            if (!matchingColor) {
+                matchingColor = colors.find(c =>
+                    c.name.toLowerCase().includes(detectedColor)
+                );
+            }
+
+            if (matchingColor) {
+                console.log('Matched color:', matchingColor.name);
+                setColorId(matchingColor.id);
+                setColor(matchingColor.name);
+            } else {
+                console.log('No matching color found for:', detectedColor);
+            }
+        }
+    }, [aiData, colors, colorId, color]);
 
     // Trigger Label Analysis when label image is uploaded
     useEffect(() => {
