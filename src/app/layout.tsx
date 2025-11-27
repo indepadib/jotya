@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 // import dynamic from 'next/dynamic';
 import "./globals.css";
 import BottomNav from "@/components/Layout/BottomNav";
+import DesktopHeader from "@/components/Layout/DesktopHeader";
 
 // const FloatingAIChat = dynamic(() => import('@/components/AI/FloatingAIChat'), {
 //   ssr: false,
@@ -28,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <DesktopHeader />
         <main>{children}</main>
         <BottomNav />
         {/* <FloatingAIChat /> */}
