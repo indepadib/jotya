@@ -8,11 +8,34 @@ export async function GET(request: Request) {
         const gender = searchParams.get('gender');
         const itemType = searchParams.get('itemType');
 
+        // Build gender array - filter out null/undefined and include matching options
+        const genderArray: string[] = [];
+        if (gender) {
+            genderArray.push(gender);
+            genderArray.push('unisex');
+        }
+
+        // Build itemType array - filter out null/undefined
+        const itemTypeArray: string[] = [];
+        if (itemType) {
+            itemTypeArray.push(itemType);
+        }
+
         const sizes = await prisma.size.findMany({
             where: {
                 category,
-                ...(gender && { gender: { in: [gender, 'unisex', null] } }),
-                ...(itemType && { itemType: { in: [itemType, null] } }),
+                ...(genderArray.length > 0 && {
+                    OR: [
+                        { gender: { in: genderArray } },
+                        { gender: null }
+                    ]
+                }),
+                ...(itemTypeArray.length > 0 && {
+                    OR: [
+                        { itemType: { in: itemTypeArray } },
+                        { itemType: null }
+                    ]
+                }),
             },
             orderBy: [
                 { sortOrder: 'asc' },
