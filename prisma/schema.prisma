@@ -110,6 +110,10 @@ model Message {
   type        String  @default("TEXT") // TEXT, OFFER
   offerAmount Float?
   offerStatus String? // PENDING, ACCEPTED, REJECTED
+  
+  // Notification fields
+  read        Boolean   @default(false)
+  readAt      DateTime?
 }
 
 model Favorite {
