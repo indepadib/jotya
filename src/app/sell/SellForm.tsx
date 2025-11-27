@@ -48,19 +48,98 @@ export default function SellForm({ initialData }: SellFormProps) {
     // Form state
     const [title, setTitle] = useState(initialData?.title || '');
     const [brand, setBrand] = useState(initialData?.brand || '');
+    const [brandId, setBrandId] = useState('');
+    const [customBrand, setCustomBrand] = useState('');
     const [color, setColor] = useState(initialData?.color || '');
+    const [colorId, setColorId] = useState('');
     const [size, setSize] = useState(initialData?.size || '');
+    const [sizeId, setSizeId] = useState('');
     const [condition, setCondition] = useState(initialData?.condition || '');
     const [description, setDescription] = useState(initialData?.description || '');
     const [price, setPrice] = useState(initialData?.price.toString() || '');
 
-    // Category state (We don't have this in initialData yet, so user might need to re-select or we infer)
-    // For MVP edit, we might leave these empty or try to infer from title/description if possible.
-    // Ideally we should store category fields in DB. For now, user re-selects if they want to change.
+    // Reference data
+    const [brands, setBrands] = useState<{ id: string; name: string; category: string | null; verified: boolean }[]>([]);
+    const [colors, setColors] = useState<{ id: string; name: string; hexCode: string; category: string }[]>([]);
+    const [sizes, setSizes] = useState<{ id: string; value: string; system: string }[]>([]);
+    const [brandSearch, setBrandSearch] = useState('');
+
+    // Category state
     const [gender, setGender] = useState('');
     const [category, setCategory] = useState('');
     const [itemType, setItemType] = useState('');
     const [subtype, setSubtype] = useState('');
+
+    // Fetch brands
+    useEffect(() => {
+        const fetchBrands = async () => {
+            const res = await fetch('/api/brands');
+            if (res.ok) {
+                const data = await res.json();
+                setBrands(data);
+            }
+        };
+        fetchBrands();
+    }, []);
+
+    // Fetch colors
+    useEffect(() => {
+        const fetchColors = async () => {
+            const res = await fetch('/api/colors');
+            if (res.ok) {
+                const data = await res.json();
+                setColors(data);
+            }
+        };
+        fetchColors();
+    }, []);
+
+    // Fetch sizes based on category and gender
+    useEffect(() => {
+        const fetchSizes = async () => {
+            if (!category) return;
+
+            // Map form categories to size categories
+            let sizeCategory = 'clothing';
+            if (category === 'shoes') {
+                sizeCategory = 'shoes';
+            } else if (category === 'accessories') {
+                sizeCategory = 'accessories';
+            } else if (category === 'clothes') {
+                sizeCategory = 'clothing';
+            }
+
+            // Map itemType to size itemType for clothing
+            let sizeItemType = null;
+            if (sizeCategory === 'clothing' && itemType) {
+                // Map specific clothing types to generic size types
+                const topTypes = ['tshirts', 'tops', 'blouses', 'sweaters', 'blazers', 'suits', 'coats', 'outerwear'];
+                const bottomTypes = ['jeans', 'pants', 'shorts', 'skirts', 'bottoms'];
+                const dressTypes = ['dresses'];
+
+                if (topTypes.includes(itemType)) {
+                    sizeItemType = 'tops';
+                } else if (bottomTypes.includes(itemType)) {
+                    sizeItemType = 'bottoms';
+                } else if (dressTypes.includes(itemType)) {
+                    sizeItemType = 'dresses';
+                }
+            }
+
+            const params = new URLSearchParams({
+                category: sizeCategory,
+                ...(gender && { gender }),
+                ...(sizeItemType && { itemType: sizeItemType }),
+            });
+
+            const res = await fetch(`/api/sizes?${params}`);
+            if (res.ok) {
+                const data = await res.json();
+                setSizes(data);
+            }
+        };
+        fetchSizes();
+    }, [category, gender, itemType]);
 
     // Trigger AI analysis when the first image is uploaded (General Analysis)
     useEffect(() => {
@@ -360,28 +439,59 @@ export default function SellForm({ initialData }: SellFormProps) {
                 <div className={styles.section}>
                     <h2 className={styles.sectionTitle}>Details</h2>
                     <div className={styles.formGroup}>
-                        <label htmlFor="brand" className={styles.label}>Brand</label>
+                        <label htmlFor="brand" className={styles.label}>Brand *</label>
                         <div className={styles.inputWrapper}>
-                            <input
-                                type="text"
+                            <select
                                 id="brand"
                                 name="brand"
-                                className={styles.input}
-                                placeholder="e.g. Zara, H&M"
-                                value={brand}
+                                className={styles.select}
+                                required
+                                value={brandId}
                                 onChange={(e) => {
-                                    setBrand(e.target.value);
-                                    // If user manually changes brand, we should probably reset verification
-                                    // unless they re-verify with the label
-                                    if (aiData?.verified && e.target.value !== aiData.brand) {
-                                        setAiData(prev => prev ? ({ ...prev, verified: false }) : null);
+                                    const selectedId = e.target.value;
+                                    setBrandId(selectedId);
+                                    if (selectedId === 'other') {
+                                        setBrand('');
+                                    } else if (selectedId) {
+                                        const selectedBrand = brands.find(b => b.id === selectedId);
+                                        if (selectedBrand) setBrand(selectedBrand.name);
                                     }
                                 }}
-                            />
+                            >
+                                <option value="">Select a brand</option>
+                                <optgroup label="Popular Brands">
+                                    {brands.filter(b => b.verified).slice(0, 20).map(b => (
+                                        <option key={b.id} value={b.id}>
+                                            {b.name} {b.verified ? '✓' : ''}
+                                        </option>
+                                    ))}
+                                </optgroup>
+                                <optgroup label="All Brands">
+                                    {brands.map(b => (
+                                        <option key={b.id} value={b.id}>
+                                            {b.name}
+                                        </option>
+                                    ))}
+                                </optgroup>
+                                <option value="other">✏️ Other (type custom brand)</option>
+                            </select>
                             {aiData?.verified && aiData.brand === brand && (
                                 <span className={styles.verifiedBadge} title="Verified by AI">🛡️</span>
                             )}
                         </div>
+                        {brandId === 'other' && (
+                            <input
+                                type="text"
+                                placeholder="Enter custom brand name"
+                                className={styles.input}
+                                value={customBrand}
+                                onChange={(e) => {
+                                    setCustomBrand(e.target.value);
+                                    setBrand(e.target.value);
+                                }}
+                                style={{ marginTop: '8px' }}
+                            />
+                        )}
                         {aiData && aiData.brand !== brand && (
                             <p className={styles.helperText} style={{ color: '#f59e0b', marginTop: 4 }}>
                                 ⚠️ AI detected "{aiData.brand}". If this is incorrect, please correct it above.
@@ -391,30 +501,67 @@ export default function SellForm({ initialData }: SellFormProps) {
 
                     <div className={styles.row}>
                         <div className={styles.formGroup}>
-                            <label htmlFor="size" className={styles.label}>Size</label>
-                            <input
-                                type="text"
+                            <label htmlFor="size" className={styles.label}>Size *</label>
+                            <select
                                 id="size"
                                 name="size"
-                                className={styles.input}
-                                placeholder="e.g. M, 38"
+                                className={styles.select}
                                 required
-                                value={size}
-                                onChange={(e) => setSize(e.target.value)}
-                            />
+                                value={sizeId}
+                                onChange={(e) => {
+                                    const selectedId = e.target.value;
+                                    setSizeId(selectedId);
+                                    if (selectedId) {
+                                        const selectedSize = sizes.find(s => s.id === selectedId);
+                                        if (selectedSize) setSize(selectedSize.value + ' ' + selectedSize.system);
+                                    }
+                                }}
+                                disabled={!category}
+                            >
+                                <option value="">{category ? 'Select size' : 'Select category first'}</option>
+                                {sizes.map(s => (
+                                    <option key={s.id} value={s.id}>
+                                        {s.value} ({s.system})
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                         <div className={styles.formGroup}>
-                            <label htmlFor="color" className={styles.label}>Color</label>
-                            <input
-                                type="text"
+                            <label htmlFor="color" className={styles.label}>Color *</label>
+                            <select
                                 id="color"
                                 name="color"
-                                className={styles.input}
-                                placeholder="e.g. Black, Red"
+                                className={styles.select}
                                 required
-                                value={color}
-                                onChange={(e) => setColor(e.target.value)}
-                            />
+                                value={colorId}
+                                onChange={(e) => {
+                                    const selectedId = e.target.value;
+                                    setColorId(selectedId);
+                                    if (selectedId) {
+                                        const selectedColor = colors.find(c => c.id === selectedId);
+                                        if (selectedColor) setColor(selectedColor.name);
+                                    }
+                                }}
+                            >
+                                <option value="">Select color</option>
+                                <optgroup label="Primary Colors">
+                                    {colors.filter(c => c.category === 'primary').map(c => (
+                                        <option key={c.id} value={c.id}>
+                                            {c.name}
+                                        </option>
+                                    ))}
+                                </optgroup>
+                                <optgroup label="Neutral Colors">
+                                    {colors.filter(c => c.category === 'neutral').map(c => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </optgroup>
+                                <optgroup label="Other Colors">
+                                    {colors.filter(c => !['primary', 'neutral'].includes(c.category)).map(c => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </optgroup>
+                            </select>
                         </div>
                     </div>
 

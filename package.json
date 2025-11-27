@@ -7,7 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "seed": "tsx prisma/seeds/index.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seeds/index.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -31,6 +35,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
+    "tsx": "^4.20.6",
     "typescript": "^5"
   }
 }

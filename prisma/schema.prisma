@@ -56,9 +56,18 @@ model Listing {
   description      String
   price            Float
   images           String
+  // Old fields - kept temporarily for migration
   brand            String?
   size             String?
   color            String?
+  // New reference relations
+  brandId          String?
+  sizeId           String?
+  colorId          String?
+  brandRef         Brand?        @relation(fields: [brandId], references: [id])
+  sizeRef          Size?         @relation(fields: [sizeId], references: [id])
+  colorRef         Color?        @relation(fields: [colorId], references: [id])
+  
   style            String?
   condition        String
   gender           String?
@@ -77,6 +86,41 @@ model Listing {
   messages         Message[]
   transactions     Transaction[]
   reports          Report[]
+}
+
+model Brand {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  category  String?   // luxury, designer, streetwear, fast-fashion, moroccan
+  verified  Boolean   @default(false)
+  popular   Boolean   @default(false)
+  logo      String?
+  createdAt DateTime  @default(now())
+  listings  Listing[]
+}
+
+model Color {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  hexCode   String
+  category  String    // primary, neutral, pastel, vibrant, metallic, pattern
+  createdAt DateTime  @default(now())
+  listings  Listing[]
+}
+
+model Size {
+  id        String    @id @default(cuid())
+  value     String    // e.g., "M", "38", "10"
+  system    String    // EU, US, UK, INT
+  category  String    // clothing, shoes, accessories
+  gender    String?   // men, women, kids, unisex
+  itemType  String?   // tops, bottoms, dresses, shoes
+  sortOrder Int       @default(0)
+  createdAt DateTime  @default(now())
+  listings  Listing[]
+
+  @@unique([value, system, category, gender, itemType])
 }
 
 model Transaction {
