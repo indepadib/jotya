@@ -18,7 +18,9 @@ export default function CardStack({ gender, category }: CardStackProps) {
     // Load initial items
     useEffect(() => {
         const load = async () => {
+            console.log('[CardStack] Loading items for:', { gender, category });
             const initial = await getInitialItems(gender, category);
+            console.log('[CardStack] Received items:', initial.length, initial);
             setItems(initial);
             setLoading(false);
         };
@@ -47,8 +49,16 @@ export default function CardStack({ gender, category }: CardStackProps) {
         }
     };
 
-    if (loading) return <div className={styles.container}>Loading discovery...</div>;
-    if (items.length === 0) return <div className={styles.container}>No more items! Check back later.</div>;
+    if (loading) {
+        console.log('[CardStack] Still loading...');
+        return <div className={styles.container}>Loading discovery...</div>;
+    }
+    if (items.length === 0) {
+        console.log('[CardStack] No items to display!');
+        return <div className={styles.container}>No more items! Check back later.</div>;
+    }
+
+    console.log('[CardStack] Rendering', items.length, 'items');
 
     return (
         <div className={styles.container}>
