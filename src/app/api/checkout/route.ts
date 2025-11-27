@@ -1,0 +1,83 @@
+import { NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2024-11-20.acacia', // Use latest or what's compatible
+});
+
+export async function POST(request: Request) {
+    try {
+        const session = await getSession();
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { listingId } = await request.json();
+
+        const listing = await prisma.listing.findUnique({
+            where: { id: listingId },
+            include: { seller: true }
+        });
+
+        if (!listing) {
+            return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
+        }
+
+        if (listing.status !== 'AVAILABLE') {
+            return NextResponse.json({ error: 'Listing is not available' }, { status: 400 });
+        }
+
+        // Calculate fees (e.g., 5% + fixed fee)
+        // For simplicity, let's say platform fee is 5%
+        const amount = listing.price;
+        const fee = amount * 0.05;
+        // Stripe expects amount in cents
+        const unitAmount = Math.round(amount * 100);
+
+        // Get the first image if available
+        let images: string[] = [];
+        try {
+            images = JSON.parse(listing.images);
+        } catch (e) {
+            images = [];
+        }
+        const imageUrl = images.length > 0 ? images[0] : undefined;
+
+        const stripeSession = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price_data: {
+                        currency: 'mad', // Moroccan Dirham
+                        product_data: {
+                            name: listing.title,
+                            images: imageUrl ? [imageUrl] : [],
+                            metadata: {
+                                listingId: listing.id
+                            }
+                        },
+                        unit_amount: unitAmount,
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: 'payment',
+            success_url: `${process.env.NEXT_PUBLIC_APP_URL}/purchases?success=true&session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/items/${listing.id}?canceled=true`,
+            metadata: {
+                listingId: listing.id,
+                buyerId: session,
+                sellerId: listing.sellerId,
+                amount: amount.toString(),
+                fee: fee.toString(),
+            },
+        });
+
+        return NextResponse.json({ url: stripeSession.url });
+    } catch (error) {
+        console.error('Stripe Checkout Error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}

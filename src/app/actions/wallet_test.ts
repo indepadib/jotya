@@ -12,7 +12,9 @@ export async function releaseMockFunds() {
         where: { userId: session }
     });
 
-    if (!wallet || wallet.pending <= 0) return;
+    if (!wallet || wallet.pending <= 0) {
+        throw new Error('No pending funds');
+    }
 
     // Move all pending to balance
     await prisma.wallet.update({
@@ -24,4 +26,5 @@ export async function releaseMockFunds() {
     });
 
     revalidatePath('/wallet');
+    return { success: true };
 }

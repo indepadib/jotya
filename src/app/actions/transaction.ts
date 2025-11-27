@@ -132,3 +132,30 @@ export async function withdrawFunds() {
     revalidatePath('/wallet');
     return { success: true };
 }
+
+export async function getTransactions() {
+    const session = await getSession();
+    if (!session) return [];
+
+    const transactions = await prisma.transaction.findMany({
+        where: {
+            OR: [
+                { buyerId: session },
+                { sellerId: session }
+            ]
+        },
+        include: {
+            listing: {
+                select: {
+                    title: true,
+                    images: true
+                }
+            }
+        },
+        orderBy: {
+            createdAt: 'desc'
+        }
+    });
+
+    return transactions;
+}

@@ -14,6 +14,7 @@ import Menu from '@/components/Layout/Menu';
 import OfferModal from '@/components/OfferModal';
 import VerificationBadge from '@/components/VerificationBadge';
 import ReportModal from '@/components/ReportModal';
+import CheckoutButton from '@/components/Checkout/CheckoutButton';
 
 interface Listing {
     id: string;
@@ -306,9 +307,13 @@ export default function ItemPageClient({
                                     Message
                                 </button>
                             </form>
-                            <Link href={`/checkout/${listing.id}`} className={styles.buyBtn}>
+                            <CheckoutButton
+                                listingId={listing.id}
+                                price={listing.price}
+                                className={styles.buyBtn}
+                            >
                                 Buy Now
-                            </Link>
+                            </CheckoutButton>
                         </>
                     )}
                 </div>

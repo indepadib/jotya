@@ -10,9 +10,11 @@ interface WalletViewProps {
         balance: number;
         pending: number;
     };
+    transactions: any[];
+    currentUserId: string;
 }
 
-export default function WalletView({ wallet }: WalletViewProps) {
+export default function WalletView({ wallet, transactions, currentUserId }: WalletViewProps) {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
 
@@ -79,9 +81,39 @@ export default function WalletView({ wallet }: WalletViewProps) {
             {message && <div style={{ marginBottom: 20, color: '#10b981', textAlign: 'center' }}>{message}</div>}
 
             <h2 className={styles.historyTitle}>Recent Activity</h2>
-            <div className={styles.emptyState}>
-                No recent transactions.
-            </div>
+            {transactions.length === 0 ? (
+                <div className={styles.emptyState}>
+                    No recent transactions.
+                </div>
+            ) : (
+                <div className={styles.transactionList}>
+                    {transactions.map((tx) => {
+                        const isSeller = tx.sellerId === currentUserId;
+                        const isPositive = isSeller; // Money coming in
+                        const amount = isSeller ? tx.netAmount : tx.amount;
+
+                        return (
+                            <div key={tx.id} className={styles.transactionItem}>
+                                <div className={styles.txIcon} style={{ background: isPositive ? '#d1fae5' : '#fee2e2', color: isPositive ? '#059669' : '#ef4444' }}>
+                                    {isPositive ? '+' : '-'}
+                                </div>
+                                <div className={styles.txInfo}>
+                                    <div className={styles.txTitle}>
+                                        {isSeller ? 'Sold: ' : 'Purchased: '}
+                                        {tx.listing.title}
+                                    </div>
+                                    <div className={styles.txDate}>
+                                        {new Date(tx.createdAt).toLocaleDateString()}
+                                    </div>
+                                </div>
+                                <div className={styles.txAmount} style={{ color: isPositive ? '#059669' : '#1f2937' }}>
+                                    {isPositive ? '+' : '-'}{amount.toFixed(2)} MAD
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 }
