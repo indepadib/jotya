@@ -160,16 +160,16 @@
 }
 
 .catCard {
-    background: var(--surface);
+    background: #ffffff;
     padding: 30px;
     border-radius: 16px;
-    border: 1px solid var(--border);
+    border: 1px solid #e0e0e0;
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .catCard:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #FF4081;
 }
