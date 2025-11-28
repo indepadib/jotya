@@ -65,7 +65,7 @@ export default function OfferModal({ isOpen, onClose, onSubmit, currentPrice, li
                     <img src={listingImage} alt={listingTitle} className={styles.itemImage} />
                     <div className={styles.itemInfo}>
                         <div className={styles.itemTitle}>{listingTitle}</div>
-                        <div className={styles.currentPrice}>Current Price: ${currentPrice}</div>
+                        <div className={styles.currentPrice}>Current Price: {currentPrice} MAD</div>
                     </div>
                 </div>
 

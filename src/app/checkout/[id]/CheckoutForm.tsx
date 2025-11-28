@@ -52,19 +52,16 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
         switch (shippingMethod) {
             case 'AMANA': return 35;
             case 'YASSIR': return 25;
-            case 'HAND_DELIVERY': return 0;
-            default: return 0;
+            default: return 35; // Default to Amana
         }
     };
     const SHIPPING = getShippingCost();
     const TOTAL = price + SHIPPING + PROTECTION_FEE;
 
     const validateAddress = () => {
-        if (shippingMethod !== 'HAND_DELIVERY') {
-            if (!street || !city || !phone) {
-                setError('Please fill in all address fields');
-                return false;
-            }
+        if (!street || !city || !phone) {
+            setError('Please fill in all required address fields');
+            return false;
         }
         return true;
     };
@@ -89,9 +86,7 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                         listingId: listing.id,
                         amount: TOTAL,
                         shippingMethod,
-                        shippingAddress: shippingMethod !== 'HAND_DELIVERY' ? {
-                            street, city, postalCode, phone
-                        } : null,
+                        shippingAddress: { street, city, postalCode, phone },
                         paymentMethod: 'COD',
                         shippingCost: SHIPPING
                     }),
@@ -113,9 +108,7 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                     body: JSON.stringify({
                         listingId: listing.id,
                         shippingMethod,
-                        shippingAddress: shippingMethod !== 'HAND_DELIVERY' ? {
-                            street, city, postalCode, phone
-                        } : null,
+                        shippingAddress: { street, city, postalCode, phone },
                         shippingCost: SHIPPING
                     }),
                 });
@@ -186,60 +179,46 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                                 <span>25 MAD • Same-day (major cities)</span>
                             </div>
                         </label>
-                        <label className={styles.radioOption}>
-                            <input
-                                type="radio"
-                                value="HAND_DELIVERY"
-                                checked={shippingMethod === 'HAND_DELIVERY'}
-                                onChange={e => setShippingMethod(e.target.value as ShippingMethod)}
-                            />
-                            <div>
-                                <strong>Hand Delivery (Meet in person)</strong>
-                                <span>FREE</span>
-                            </div>
-                        </label>
                     </div>
                 </div>
 
-                {/* Shipping Address - only if not hand delivery */}
-                {shippingMethod !== 'HAND_DELIVERY' && (
-                    <div className={styles.section}>
-                        <h2 className={styles.sectionTitle}>📍 Delivery Address</h2>
-                        <div className={styles.formGrid}>
-                            <input
-                                type="text"
-                                placeholder="Street Address *"
-                                className={styles.input}
-                                value={street}
-                                onChange={e => setStreet(e.target.value)}
-                                required
-                            />
-                            <input
-                                type="text"
-                                placeholder="City *"
-                                className={styles.input}
-                                value={city}
-                                onChange={e => setCity(e.target.value)}
-                                required
-                            />
-                            <input
-                                type="text"
-                                placeholder="Postal Code"
-                                className={styles.input}
-                                value={postalCode}
-                                onChange={e => setPostalCode(e.target.value)}
-                            />
-                            <input
-                                type="tel"
-                                placeholder="Phone Number *"
-                                className={styles.input}
-                                value={phone}
-                                onChange={e => setPhone(e.target.value)}
-                                required
-                            />
-                        </div>
+                {/* Shipping Address */}
+                <div className={styles.section}>
+                    <h2 className={styles.sectionTitle}>📍 Delivery Address</h2>
+                    <div className={styles.formGrid}>
+                        <input
+                            type="text"
+                            placeholder="Street Address *"
+                            className={styles.input}
+                            value={street}
+                            onChange={e => setStreet(e.target.value)}
+                            required
+                        />
+                        <input
+                            type="text"
+                            placeholder="City *"
+                            className={styles.input}
+                            value={city}
+                            onChange={e => setCity(e.target.value)}
+                            required
+                        />
+                        <input
+                            type="text"
+                            placeholder="Postal Code"
+                            className={styles.input}
+                            value={postalCode}
+                            onChange={e => setPostalCode(e.target.value)}
+                        />
+                        <input
+                            type="tel"
+                            placeholder="Phone Number *"
+                            className={styles.input}
+                            value={phone}
+                            onChange={e => setPhone(e.target.value)}
+                            required
+                        />
                     </div>
-                )}
+                </div>
 
                 {/* Payment Method */}
                 <div className={styles.section}>
