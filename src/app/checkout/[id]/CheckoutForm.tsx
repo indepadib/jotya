@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { processPayment } from '@/app/actions/transaction';
 import styles from './checkout.module.css';
 
 interface CheckoutFormProps {
@@ -18,11 +17,23 @@ interface CheckoutFormProps {
     isOfferPrice?: boolean;
 }
 
+type ShippingMethod = 'AMANA' | 'YASSIR' | 'HAND_DELIVERY';
+type PaymentMethod = 'STRIPE' | 'COD';
+
 export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: CheckoutFormProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState(false);
     const router = useRouter();
+
+    // Address fields
+    const [street, setStreet] = useState('');
+    const [city, setCity] = useState('');
+    const [postalCode, setPostalCode] = useState('');
+    const [phone, setPhone] = useState('');
+
+    // Shipping and payment
+    const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('AMANA');
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('STRIPE');
 
     let images = [];
     try {
@@ -32,43 +43,98 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
     }
     const firstImage = images[0] || '';
 
-    // Fees
+    // Calculate fees
     const price = effectivePrice || listing.price;
-    const SHIPPING = 4.99;
     const PROTECTION_FEE = price * 0.05; // 5% Buyer Protection
+
+    // Dynamic shipping cost
+    const getShippingCost = () => {
+        switch (shippingMethod) {
+            case 'AMANA': return 35;
+            case 'YASSIR': return 25;
+            case 'HAND_DELIVERY': return 0;
+            default: return 0;
+        }
+    };
+    const SHIPPING = getShippingCost();
     const TOTAL = price + SHIPPING + PROTECTION_FEE;
+
+    const validateAddress = () => {
+        if (shippingMethod !== 'HAND_DELIVERY') {
+            if (!street || !city || !phone) {
+                setError('Please fill in all address fields');
+                return false;
+            }
+        }
+        return true;
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
         setError('');
 
+        if (!validateAddress()) {
+            return;
+        }
+
+        setLoading(true);
+
         try {
-            const response = await fetch('/api/checkout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    listingId: listing.id,
-                }),
-            });
+            if (paymentMethod === 'COD') {
+                // Create transaction directly without Stripe
+                const response = await fetch('/api/transactions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        listingId: listing.id,
+                        amount: TOTAL,
+                        shippingMethod,
+                        shippingAddress: shippingMethod !== 'HAND_DELIVERY' ? {
+                            street, city, postalCode, phone
+                        } : null,
+                        paymentMethod: 'COD',
+                        shippingCost: SHIPPING
+                    }),
+                });
 
-            const data = await response.json();
+                const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Payment initiation failed');
-            }
+                if (!response.ok) {
+                    throw new Error(data.error || 'Transaction creation failed');
+                }
 
-            if (data.url) {
-                // Redirect to Stripe Checkout
-                window.location.href = data.url;
+                // Redirect to success page
+                router.push('/purchases?success=true&cod=true');
             } else {
-                throw new Error('No checkout URL received');
+                // Stripe payment
+                const response = await fetch('/api/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        listingId: listing.id,
+                        shippingMethod,
+                        shippingAddress: shippingMethod !== 'HAND_DELIVERY' ? {
+                            street, city, postalCode, phone
+                        } : null,
+                        shippingCost: SHIPPING
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Payment initiation failed');
+                }
+
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    throw new Error('No checkout URL received');
+                }
             }
         } catch (err: any) {
-            console.error('Payment Error:', err);
-            setError(err.message || 'Payment failed');
+            console.error('Checkout Error:', err);
+            setError(err.message || 'Checkout failed');
             setLoading(false);
         }
     };
@@ -79,54 +145,178 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                 <h1 className={styles.title}>Checkout</h1>
             </header>
 
-            <div className={styles.summary}>
-                <div className={styles.itemRow}>
-                    <img src={firstImage} alt={listing.title} className={styles.itemImage} />
-                    <div className={styles.itemDetails}>
-                        <h3>{listing.title}</h3>
-                        <p>{listing.brand} • {listing.size}</p>
+            <form onSubmit={handleSubmit}>
+                {/* Order Summary */}
+                <div className={styles.summary}>
+                    <h2 className={styles.sectionTitle}>Order Summary</h2>
+                    <div className={styles.itemRow}>
+                        <img src={firstImage} alt={listing.title} className={styles.itemImage} />
+                        <div className={styles.itemDetails}>
+                            <h3>{listing.title}</h3>
+                            <p>{listing.brand} • {listing.size}</p>
+                        </div>
                     </div>
                 </div>
 
-                <div className={styles.priceBreakdown}>
-                    <div className={styles.row}>
-                        <span>
-                            Item Price
-                            {isOfferPrice && <span className={styles.offerBadge}>Offer Applied</span>}
-                        </span>
-                        <span>{price.toFixed(2)} MAD</span>
-                    </div>
-                    <div className={styles.row}>
-                        <span>Shipping</span>
-                        <span>{SHIPPING.toFixed(2)} MAD</span>
-                    </div>
-                    <div className={styles.row}>
-                        <span>Buyer Protection (5%)</span>
-                        <span>{PROTECTION_FEE.toFixed(2)} MAD</span>
-                    </div>
-                    <div className={styles.totalRow}>
-                        <span>Total</span>
-                        <span>{TOTAL.toFixed(2)} MAD</span>
+                {/* Shipping Method */}
+                <div className={styles.section}>
+                    <h2 className={styles.sectionTitle}>🚚 Shipping Method</h2>
+                    <div className={styles.radioGroup}>
+                        <label className={styles.radioOption}>
+                            <input
+                                type="radio"
+                                value="AMANA"
+                                checked={shippingMethod === 'AMANA'}
+                                onChange={e => setShippingMethod(e.target.value as ShippingMethod)}
+                            />
+                            <div>
+                                <strong>Amana (National Courier)</strong>
+                                <span>35 MAD • 2-5 business days</span>
+                            </div>
+                        </label>
+                        <label className={styles.radioOption}>
+                            <input
+                                type="radio"
+                                value="YASSIR"
+                                checked={shippingMethod === 'YASSIR'}
+                                onChange={e => setShippingMethod(e.target.value as ShippingMethod)}
+                            />
+                            <div>
+                                <strong>Yassir Express</strong>
+                                <span>25 MAD • Same-day (major cities)</span>
+                            </div>
+                        </label>
+                        <label className={styles.radioOption}>
+                            <input
+                                type="radio"
+                                value="HAND_DELIVERY"
+                                checked={shippingMethod === 'HAND_DELIVERY'}
+                                onChange={e => setShippingMethod(e.target.value as ShippingMethod)}
+                            />
+                            <div>
+                                <strong>Hand Delivery (Meet in person)</strong>
+                                <span>FREE</span>
+                            </div>
+                        </label>
                     </div>
                 </div>
-            </div>
 
-            <div className={styles.paymentSection}>
-                <h2 className={styles.formTitle}>Payment Method 💳</h2>
-                <p className={styles.secureText}>
-                    You will be redirected to Stripe to complete your payment securely.
-                </p>
+                {/* Shipping Address - only if not hand delivery */}
+                {shippingMethod !== 'HAND_DELIVERY' && (
+                    <div className={styles.section}>
+                        <h2 className={styles.sectionTitle}>📍 Delivery Address</h2>
+                        <div className={styles.formGrid}>
+                            <input
+                                type="text"
+                                placeholder="Street Address *"
+                                className={styles.input}
+                                value={street}
+                                onChange={e => setStreet(e.target.value)}
+                                required
+                            />
+                            <input
+                                type="text"
+                                placeholder="City *"
+                                className={styles.input}
+                                value={city}
+                                onChange={e => setCity(e.target.value)}
+                                required
+                            />
+                            <input
+                                type="text"
+                                placeholder="Postal Code"
+                                className={styles.input}
+                                value={postalCode}
+                                onChange={e => setPostalCode(e.target.value)}
+                            />
+                            <input
+                                type="tel"
+                                placeholder="Phone Number *"
+                                className={styles.input}
+                                value={phone}
+                                onChange={e => setPhone(e.target.value)}
+                                required
+                            />
+                        </div>
+                    </div>
+                )}
 
+                {/* Payment Method */}
+                <div className={styles.section}>
+                    <h2 className={styles.sectionTitle}>💳 Payment Method</h2>
+                    <div className={styles.radioGroup}>
+                        <label className={styles.radioOption}>
+                            <input
+                                type="radio"
+                                value="STRIPE"
+                                checked={paymentMethod === 'STRIPE'}
+                                onChange={e => setPaymentMethod(e.target.value as PaymentMethod)}
+                            />
+                            <div>
+                                <strong>Card Payment (Stripe)</strong>
+                                <span>Pay securely with credit/debit card</span>
+                            </div>
+                        </label>
+                        <label className={styles.radioOption}>
+                            <input
+                                type="radio"
+                                value="COD"
+                                checked={paymentMethod === 'COD'}
+                                onChange={e => setPaymentMethod(e.target.value as PaymentMethod)}
+                            />
+                            <div>
+                                <strong>Cash on Delivery (COD)</strong>
+                                <span>Pay when you receive the item</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                {/* Price Breakdown */}
+                <div className={styles.summary}>
+                    <h2 className={styles.sectionTitle}>Price Breakdown</h2>
+                    <div className={styles.priceBreakdown}>
+                        <div className={styles.row}>
+                            <span>
+                                Item Price
+                                {isOfferPrice && <span className={styles.offerBadge}>Offer Applied</span>}
+                            </span>
+                            <span>{price.toFixed(2)} MAD</span>
+                        </div>
+                        <div className={styles.row}>
+                            <span>Shipping ({shippingMethod})</span>
+                            <span>{SHIPPING === 0 ? 'FREE' : `${SHIPPING.toFixed(2)} MAD`}</span>
+                        </div>
+                        <div className={styles.row}>
+                            <span>Buyer Protection (5%)</span>
+                            <span>{PROTECTION_FEE.toFixed(2)} MAD</span>
+                        </div>
+                        <div className={styles.totalRow}>
+                            <span>Total</span>
+                            <span>{TOTAL.toFixed(2)} MAD</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Submit Button */}
                 <button
-                    onClick={handleSubmit}
+                    type="submit"
                     className={styles.payButton}
                     disabled={loading}
                 >
-                    {loading ? 'Redirecting to Stripe...' : `Pay ${TOTAL.toFixed(2)} MAD`}
+                    {loading
+                        ? (paymentMethod === 'COD' ? 'Creating Order...' : 'Redirecting to Stripe...')
+                        : (paymentMethod === 'COD' ? `Place Order (${TOTAL.toFixed(2)} MAD)` : `Pay ${TOTAL.toFixed(2)} MAD`)}
                 </button>
 
                 {error && <div className={styles.error}>{error}</div>}
-            </div>
+
+                {paymentMethod === 'STRIPE' && (
+                    <p className={styles.secureText}>
+                        🔒 You will be redirected to Stripe for secure payment
+                    </p>
+                )}
+            </form>
         </div>
     );
 }

@@ -154,3 +154,86 @@
     margin-left: 8px;
     font-weight: 500;
 }
+
+.section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.sectionTitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text-primary);
+}
+
+.radioGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.radioOption {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.radioOption:hover {
+    border-color: var(--primary);
+    background: rgba(255, 64, 129, 0.02);
+}
+
+.radioOption input[type="radio"] {
+    margin-top: 2px;
+    accent-color: var(--primary);
+}
+
+.radioOption input[type="radio"]:checked+div {
+    color: var(--primary);
+}
+
+.radioOption div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.radioOption strong {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.radioOption span {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.formGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.formGrid input:first-child {
+    grid-column: 1 / -1;
+}
+
+.secureText {
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 12px;
+}
+
+.paymentSection {
+    margin-top: 24px;
+}

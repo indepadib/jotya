@@ -29,8 +29,12 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
         }
 
+        console.log('[Checkout] Listing status:', listing.status, 'for listing:', listingId);
+
         if (listing.status !== 'AVAILABLE') {
-            return NextResponse.json({ error: 'Listing is not available' }, { status: 400 });
+            return NextResponse.json({
+                error: `Listing is not available. Current status: ${listing.status}`
+            }, { status: 400 });
         }
 
         // Calculate fees (e.g., 5% + fixed fee)
