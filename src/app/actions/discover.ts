@@ -29,13 +29,26 @@ export async function getInitialItems(gender: string, category: string) {
             where,
             take: 20,
             orderBy: { createdAt: 'desc' },
-            include: { seller: { select: { name: true, rating: true } } }
+            include: {
+                seller: { select: { name: true, rating: true } },
+                brandRef: { select: { name: true } },
+                colorRef: { select: { name: true } },
+                sizeRef: { select: { value: true, system: true } }
+            }
         });
 
         console.log('[Discover] Found items:', listings.length);
 
+        // Map to display-friendly format with fallbacks
+        const mappedListings = listings.map(listing => ({
+            ...listing,
+            brand: listing.brand || listing.brandRef?.name || 'Unknown Brand',
+            color: listing.color || listing.colorRef?.name || 'Unknown Color',
+            size: listing.size || (listing.sizeRef ? `${listing.sizeRef.value} (${listing.sizeRef.system})` : 'N/A')
+        }));
+
         // Shuffle them for "randomness"
-        return listings.sort(() => Math.random() - 0.5);
+        return mappedListings.sort(() => Math.random() - 0.5);
     } catch (error) {
         console.error('Error fetching initial items:', error);
         return [];
