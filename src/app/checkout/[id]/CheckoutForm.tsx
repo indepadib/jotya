@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './checkout.module.css';
@@ -30,6 +32,11 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
     const [city, setCity] = useState('');
     const [postalCode, setPostalCode] = useState('');
     const [phone, setPhone] = useState('');
+
+    // Address autocomplete
+    const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [loadingAddresses, setLoadingAddresses] = useState(false);
 
     // Shipping and payment
     const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('AMANA');
@@ -64,6 +71,53 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
             return false;
         }
         return true;
+    };
+
+    // Debounced address search
+    const searchAddress = useCallback(async (query: string) => {
+        if (query.length < 3) {
+            setAddressSuggestions([]);
+            return;
+        }
+
+        setLoadingAddresses(true);
+        try {
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/search?` +
+                `q=${encodeURIComponent(query)},Morocco&` +
+                `format=json&` +
+                `addressdetails=1&` +
+                `limit=5`
+            );
+            const data = await response.json();
+            setAddressSuggestions(data);
+            setShowSuggestions(true);
+        } catch (error) {
+            console.error('Address search error:', error);
+        } finally {
+            setLoadingAddresses(false);
+        }
+    }, []);
+
+    // Debounce the search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (street) {
+                searchAddress(street);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [street, searchAddress]);
+
+    const handleAddressSelect = (suggestion: any) => {
+        const address = suggestion.address;
+        setStreet(suggestion.display_name.split(',')[0]);
+        if (address.city) setCity(address.city);
+        else if (address.town) setCity(address.town);
+        else if (address.village) setCity(address.village);
+        if (address.postcode) setPostalCode(address.postcode);
+        setShowSuggestions(false);
+        setAddressSuggestions([]);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -188,14 +242,6 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                     <div className={styles.formGrid}>
                         <input
                             type="text"
-                            placeholder="Street Address *"
-                            className={styles.input}
-                            value={street}
-                            onChange={e => setStreet(e.target.value)}
-                            required
-                        />
-                        <input
-                            type="text"
                             placeholder="City *"
                             className={styles.input}
                             value={city}
@@ -264,7 +310,7 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                         </div>
                         <div className={styles.row}>
                             <span>Shipping ({shippingMethod})</span>
-                            <span>{SHIPPING === 0 ? 'FREE' : `${SHIPPING.toFixed(2)} MAD`}</span>
+                            <span>{SHIPPING.toFixed(2)} MAD</span>
                         </div>
                         <div className={styles.row}>
                             <span>Buyer Protection (5%)</span>

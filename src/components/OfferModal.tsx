@@ -71,7 +71,7 @@ export default function OfferModal({ isOpen, onClose, onSubmit, currentPrice, li
 
                 <form onSubmit={handleSubmit}>
                     <div className={styles.inputGroup}>
-                        <span className={styles.currency}>$</span>
+                        <span className={styles.currency}>MAD</span>
                         <input
                             type="number"
                             value={amount}
