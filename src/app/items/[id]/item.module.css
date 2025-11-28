@@ -451,12 +451,12 @@
     bottom: 80px;
     left: 0;
     right: 0;
-    padding: 16px 20px;
+    padding: 12px 16px;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(16px);
     border-top: 1px solid var(--border);
     display: flex;
-    gap: 12px;
+    gap: 10px;
     z-index: 100;
     box-shadow: 0 -4px 12px rgba(44, 24, 16, 0.08);
 }
@@ -472,20 +472,20 @@
 }
 
 .messageBtn {
-    padding: 14px 20px;
+    padding: 12px 16px;
     background: transparent;
     border: 1.5px solid var(--primary);
     color: var(--primary);
     border-radius: var(--radius-full);
     font-weight: 600;
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     cursor: pointer;
     transition: all 0.3s ease;
     white-space: nowrap;
     font-family: var(--font-sans);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .messageBtn svg {
@@ -505,13 +505,13 @@
 
 .buyBtn {
     flex: 1;
-    padding: 14px 28px;
+    padding: 12px 20px;
     background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
     color: white;
     border: none;
     border-radius: var(--radius-full);
     font-weight: 600;
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: var(--shadow-md);
@@ -585,29 +585,5 @@
 
     .price {
         font-size: 1.75rem;
-    }
-}
-
-@media (max-width: 480px) {
-
-    /* Stack buttons vertically on smallest screens */
-    .stickyActions {
-        flex-direction: column;
-        gap: 10px;
-        padding: 12px 16px;
-    }
-
-    .messageBtn,
-    .buyBtn {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .messageForm {
-        width: 100%;
-    }
-
-    .messageForm button {
-        width: 100%;
     }
 }

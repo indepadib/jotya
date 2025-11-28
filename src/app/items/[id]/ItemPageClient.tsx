@@ -335,6 +335,7 @@ export default function ItemPageClient({
                             <CheckoutButton
                                 listingId={listing.id}
                                 price={listing.price}
+                                listingStatus={listing.status}
                                 className={styles.buyBtn}
                             >
                                 Buy Now
