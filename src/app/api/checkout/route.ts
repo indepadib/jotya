@@ -84,8 +84,13 @@ export async function POST(request: Request) {
         });
 
         return NextResponse.json({ url: stripeSession.url });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Stripe Checkout Error:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        console.error('Error message:', error?.message);
+        console.error('Error stack:', error?.stack);
+        return NextResponse.json({
+            error: error?.message || 'Internal Server Error',
+            details: process.env.NODE_ENV === 'development' ? error?.stack : undefined
+        }, { status: 500 });
     }
 }
