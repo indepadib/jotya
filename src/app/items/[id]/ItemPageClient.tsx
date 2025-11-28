@@ -28,6 +28,7 @@ interface Listing {
     description: string;
     verified: boolean;
     sellerId: string;
+    status: string;
     seller: {
         id: string;
         name: string;
@@ -63,6 +64,7 @@ export default function ItemPageClient({
     const [showReportModal, setShowReportModal] = useState(false);
 
     const isOwner = currentUserId === listing.sellerId;
+    const isSold = listing.status === 'SOLD';
 
     const handleOfferSubmit = async (amount: number) => {
         await createOffer(listing.id, amount);
@@ -97,6 +99,19 @@ export default function ItemPageClient({
                 <div className={styles.content}>
                     {/* Price Hero */}
                     <div className={styles.priceHero}>
+                        {isSold && (
+                            <div style={{
+                                background: '#fee2e2',
+                                color: '#991b1b',
+                                padding: '8px 16px',
+                                borderRadius: '8px',
+                                fontWeight: 700,
+                                textAlign: 'center',
+                                marginBottom: '12px'
+                            }}>
+                                ⛔ SOLD - This item is no longer available
+                            </div>
+                        )}
                         <div className={styles.brandRow}>
                             <span className={styles.brandName}>{listing.brand || 'Brand'}</span>
                             {listing.verified && (
@@ -288,6 +303,16 @@ export default function ItemPageClient({
                                 Delete
                             </button>
                         </>
+                    ) : isSold ? (
+                        <div style={{
+                            padding: '16px',
+                            textAlign: 'center',
+                            color: 'var(--text-secondary)',
+                            background: 'var(--surface)',
+                            borderRadius: '12px'
+                        }}>
+                            This item has been sold
+                        </div>
                     ) : (
                         <>
                             <button

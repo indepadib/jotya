@@ -36,6 +36,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
             condition: true,
             verified: true,
             sellerId: true,
+            status: true,
             seller: {
                 select: {
                     id: true,
@@ -73,6 +74,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                 condition: true,
                 verified: true,
                 sellerId: true,
+                status: true,
                 seller: {
                     select: {
                         id: true,
@@ -111,6 +113,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
             condition: true,
             verified: true,
             sellerId: true,
+            status: true,
             seller: {
                 select: {
                     id: true,
