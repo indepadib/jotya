@@ -176,17 +176,36 @@ export async function searchWithAI(query: string) {
     }
 }
 
-export async function generateListingDescription(input: string | any, type?: 'general' | 'label') {
+import { categories } from '../search/categories';
+
+// Helper to generate category schema for AI
+function getCategorySchema() {
+    let schema = "";
+    Object.entries(categories).forEach(([genderKey, genderVal]: [string, any]) => {
+        if (genderKey === 'creators') return; // Skip creators for now
+        schema += `${genderVal.name} (${genderKey}):\n`;
+        Object.entries(genderVal.categories).forEach(([catKey, catVal]: [string, any]) => {
+            if (catKey === 'all') return;
+            schema += `  - ${catVal.name} (Key: "${catKey}")\n`;
+            if (catVal.types) {
+                schema += `    Types: ${Object.entries(catVal.types).filter(([k]) => k !== 'all').map(([k, v]: [string, any]) => `${v.name} ("${k}")`).join(', ')}\n`;
+            }
+        });
+    });
+    return schema;
+}
+
+export async function generateListingDescription(input: string | string[] | any, type?: 'general' | 'label') {
     try {
         console.log('[AI] Generating description...');
 
         // Case 1: Input is an object (Metadata for text generation)
-        if (typeof input === 'object') {
+        if (typeof input === 'object' && !Array.isArray(input)) {
             console.log('[AI] Mode: Text Generation');
             // ... existing code ...
         }
 
-        // Case 2: Input is a string (Image Base64 for analysis)
+        // Case 2: Input is a string or array of strings (Image Base64 for analysis)
         console.log('[AI] Mode: Image Analysis');
 
         // Fetch reference data to guide the AI
@@ -196,33 +215,36 @@ export async function generateListingDescription(input: string | any, type?: 'ge
         ]);
         console.log(`[AI] Loaded ${brands.length} brands and ${colors.length} colors for context.`);
 
-        const brandList = brands.map(b => b.name).join(', ');
-        const colorList = colors.map(c => c.name).join(', ');
+        const brandList = brands.map((b: { name: string }) => b.name).join(', ');
+        const colorList = colors.map((c: { name: string }) => c.name).join(', ');
+        const categorySchema = getCategorySchema();
 
         const prompt = type === 'label'
             ? `Analyze this fashion item label. Is it authentic? 
                Valid Brands: ${brandList}
                Return JSON with { isAuthentic: boolean, brand: string, checks: [{name: string, passed: boolean}] }
                If the brand matches one in the list, use the exact name.`
-            : `You are a fashion expert. Analyze the image and generate a listing description for a marketplace.
+            : `You are a fashion expert. Analyze the images and generate a listing description for a marketplace.
           
           Context:
           - Valid Brands: ${brandList}
           - Valid Colors: ${colorList}
+          - Valid Categories Structure:
+          ${categorySchema}
           
           Instructions:
           - Identify the brand. If it matches a Valid Brand, use that EXACT name. If not, use the detected name.
           - Identify the dominant color. Map it to the closest Valid Color.
-          - Determine the Gender (Men, Women, Kids, Unisex).
-          - Determine the Category (Clothing, Shoes, Accessories, Bags).
-          - Determine the specific Item Type (e.g., T-Shirt, Jeans, Sneakers, Handbag).
+          - Determine the Gender (Key: men, women, kids).
+          - Determine the Category (Key from structure, e.g., "clothes", "shoes").
+          - Determine the specific Item Type (Key from structure, e.g., "tshirts", "sneakers").
           
           Return a JSON object with:
           - title (string): A catchy, descriptive title
           - description (string): A detailed description including color, style, and potential condition
-          - gender (string): Men, Women, Kids, or Unisex
-          - category (string): Clothing, Shoes, Accessories, or Bags
-          - itemType (string): The specific type
+          - gender (string): The detected Gender Key (men, women, kids)
+          - category (string): The detected Category Key
+          - itemType (string): The detected Item Type Key
           - brand (string, optional): The detected brand name
           - color (string): The detected color name
           - material (string, optional)
@@ -231,6 +253,15 @@ export async function generateListingDescription(input: string | any, type?: 'ge
           `;
 
         console.log('[AI] Sending request to OpenAI...');
+
+        // Construct user content with multiple images
+        const userContent: any[] = [{ type: "text", text: "Analyze this item." }];
+
+        const inputs = Array.isArray(input) ? input : [input];
+        inputs.forEach(url => {
+            userContent.push({ type: "image_url", image_url: { url } });
+        });
+
         const completion = await ai.chat.completions.create({
             model: 'gpt-4o-mini',
             messages: [
@@ -240,10 +271,7 @@ export async function generateListingDescription(input: string | any, type?: 'ge
                 },
                 {
                     role: 'user',
-                    content: [
-                        { type: "text", text: "Analyze this item." },
-                        { type: "image_url", image_url: { url: input } }
-                    ]
+                    content: userContent
                 }
             ],
             response_format: { type: 'json_object' }
@@ -261,7 +289,7 @@ export async function generateListingDescription(input: string | any, type?: 'ge
             const detectedBrand = result.brand.toLowerCase();
 
             // 1. Exact match
-            let matchedBrand = brands.find(b => b.name.toLowerCase() === detectedBrand);
+            let matchedBrand = brands.find((b: { name: string }) => b.name.toLowerCase() === detectedBrand);
 
             // 2. Partial match (AI result contains DB brand, e.g. "Nike Air" -> "Nike")
             if (!matchedBrand) {
@@ -280,7 +308,7 @@ export async function generateListingDescription(input: string | any, type?: 'ge
         }
 
         if (result.color) {
-            const matchedColor = colors.find(c => c.name.toLowerCase() === result.color.toLowerCase());
+            const matchedColor = colors.find((c: { name: string; id: string }) => c.name.toLowerCase() === result.color.toLowerCase());
             if (matchedColor) {
                 result.colorId = matchedColor.id;
                 result.color = matchedColor.name; // Normalize to our name
@@ -295,5 +323,6 @@ export async function generateListingDescription(input: string | any, type?: 'ge
     }
 }
 
-export const analyzeListingImage = generateListingDescription;
-
+export async function analyzeListingImage(image: string | string[], type: 'general' | 'label' = 'general') {
+    return generateListingDescription(image, type);
+}

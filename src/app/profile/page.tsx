@@ -36,6 +36,10 @@ export default async function ProfilePage() {
 
         return <ProfileView user={user} stats={stats} />;
     } catch (error) {
+        // Re-throw Next.js redirect errors
+        if ((error as any)?.digest?.includes('NEXT_REDIRECT')) {
+            throw error;
+        }
         console.error('[Profile] Error:', error);
 
         // Show error details to user for debugging

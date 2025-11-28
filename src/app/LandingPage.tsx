@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Menu from '@/components/Layout/Menu';
 import FloatingAIChat from '@/components/AI/FloatingAIChat';
+import ProductCard from '@/components/ProductCard';
 import styles from "./page.module.css";
 
 interface LandingProps {
@@ -305,15 +306,15 @@ export default function LandingPage({ featuredListings }: LandingProps) {
                         {featuredListings.slice(0, 6).map((listing) => {
                             const images = JSON.parse(listing.images);
                             return (
-                                <Link key={listing.id} href={`/items/${listing.id}`} className={styles.card}>
-                                    <div className={styles.cardImage}>
-                                        <img src={images[0]} alt={listing.title} />
-                                    </div>
-                                    <div className={styles.cardContent}>
-                                        <p className={styles.cardBrand}>{listing.brand}</p>
-                                        <p className={styles.cardPrice}>{listing.price} MAD</p>
-                                    </div>
-                                </Link>
+                                <ProductCard
+                                    key={listing.id}
+                                    id={listing.id}
+                                    title={listing.title}
+                                    price={listing.price}
+                                    image={images[0]}
+                                    brand={listing.brand}
+                                    isFavorited={listing.isFavorited}
+                                />
                             );
                         })}
                     </div>

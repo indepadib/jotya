@@ -153,8 +153,9 @@ export default function SellForm({ initialData }: SellFormProps) {
             const analyze = async () => {
                 setIsAnalyzing(true);
                 try {
-                    // Use the first image for analysis
-                    const result = await analyzeListingImage(images[0], 'general');
+                    // Use up to 3 images for better context
+                    const imagesToAnalyze = images.slice(0, 3);
+                    const result = await analyzeListingImage(imagesToAnalyze, 'general');
                     if (result) {
                         setAiData(prev => ({
                             ...prev,
@@ -420,7 +421,8 @@ export default function SellForm({ initialData }: SellFormProps) {
                         <div className={styles.aiSuggestion} style={{
                             background: '#f0f9ff', border: '1px solid #bae6fd', padding: '12px',
                             borderRadius: '8px', marginBottom: '16px', display: 'flex',
-                            alignItems: 'center', justifyContent: 'space-between'
+                            alignItems: 'center', justifyContent: 'space-between',
+                            color: '#0f172a' // Force dark text for contrast
                         }}>
                             <div>
                                 <span style={{ marginRight: '8px' }}>✨ AI Suggestion:</span>
@@ -429,22 +431,20 @@ export default function SellForm({ initialData }: SellFormProps) {
                             <button
                                 type="button"
                                 onClick={() => {
-                                    // Simple mapping - in a real app, use a robust fuzzy matcher
+                                    // AI now returns exact keys, so we can set them directly
                                     const g = aiData.gender?.toLowerCase();
                                     const c = aiData.category?.toLowerCase();
+                                    const t = aiData.itemType?.toLowerCase();
 
-                                    if (g && ['men', 'women', 'kids'].includes(g)) setGender(g);
+                                    if (g && ['men', 'women', 'kids'].includes(g)) {
+                                        setGender(g);
+                                        // Wait for state update or set dependent fields immediately?
+                                        // React state updates are batched, so setting category immediately might rely on gender being set.
+                                        // But since we control the inputs, we can set them all.
 
-                                    // Map category names to keys
-                                    let cKey = '';
-                                    if (c?.includes('cloth')) cKey = 'clothing';
-                                    else if (c?.includes('shoe')) cKey = 'shoes';
-                                    else if (c?.includes('bag') || c?.includes('access')) cKey = 'accessories';
-
-                                    if (cKey) setCategory(cKey);
-
-                                    // Try to match item type if possible (simplified)
-                                    // This would need a lookup map in a real implementation
+                                        if (c) setCategory(c);
+                                        if (t) setItemType(t);
+                                    }
                                 }}
                                 style={{
                                     background: '#0ea5e9', color: 'white', border: 'none',
@@ -653,11 +653,28 @@ export default function SellForm({ initialData }: SellFormProps) {
                                 disabled={!category}
                             >
                                 <option value="">{category ? 'Select size' : 'Select category first'}</option>
-                                {sizes.map(s => (
-                                    <option key={s.id} value={s.id}>
-                                        {s.value} ({s.system})
-                                    </option>
-                                ))}
+                                {/* Group by System */}
+                                {['INT', 'EU', 'US', 'UK'].map(system => {
+                                    const systemSizes = sizes.filter(s => s.system === system);
+                                    if (systemSizes.length === 0) return null;
+                                    return (
+                                        <optgroup key={system} label={`${system} Sizes`}>
+                                            {systemSizes.map(s => (
+                                                <option key={s.id} value={s.id}>
+                                                    {s.value}
+                                                </option>
+                                            ))}
+                                        </optgroup>
+                                    );
+                                })}
+                                {/* Other systems */}
+                                <optgroup label="Other">
+                                    {sizes.filter(s => !['INT', 'EU', 'US', 'UK'].includes(s.system)).map(s => (
+                                        <option key={s.id} value={s.id}>
+                                            {s.value} ({s.system})
+                                        </option>
+                                    ))}
+                                </optgroup>
                             </select>
                         </div>
                         <div className={styles.formGroup}>
