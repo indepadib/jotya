@@ -44,32 +44,34 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
         setError('');
 
         try {
-            // Mock card data - in real app would come from Stripe Elements
-            const cardDetails = { token: 'tok_visa' };
-            const result = await processPayment(listing.id, cardDetails);
+            const response = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    listingId: listing.id,
+                }),
+            });
 
-            setSuccess(true);
-            setTimeout(() => {
-                router.push('/purchases'); // Redirect to purchases page
-            }, 3000);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Payment initiation failed');
+            }
+
+            if (data.url) {
+                // Redirect to Stripe Checkout
+                window.location.href = data.url;
+            } else {
+                throw new Error('No checkout URL received');
+            }
         } catch (err: any) {
+            console.error('Payment Error:', err);
             setError(err.message || 'Payment failed');
             setLoading(false);
         }
     };
-
-    if (success) {
-        return (
-            <div className={styles.container}>
-                <div className={styles.success}>
-                    <span className={styles.successIcon}>🎉</span>
-                    <h2 className={styles.title}>Order Confirmed!</h2>
-                    <p>Your payment was successful.</p>
-                    <p>Redirecting you...</p>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className={styles.container}>
@@ -109,31 +111,22 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit} className={styles.form}>
-                <h2 className={styles.formTitle}>Payment Details 💳</h2>
+            <div className={styles.paymentSection}>
+                <h2 className={styles.formTitle}>Payment Method 💳</h2>
+                <p className={styles.secureText}>
+                    You will be redirected to Stripe to complete your payment securely.
+                </p>
 
-                <div className={styles.inputGroup}>
-                    <label className={styles.label}>Card Number</label>
-                    <input type="text" className={styles.input} placeholder="4242 4242 4242 4242" defaultValue="4242 4242 4242 4242" />
-                </div>
-
-                <div className={styles.row2}>
-                    <div className={styles.inputGroup}>
-                        <label className={styles.label}>Expiry</label>
-                        <input type="text" className={styles.input} placeholder="MM/YY" defaultValue="12/25" />
-                    </div>
-                    <div className={styles.inputGroup}>
-                        <label className={styles.label}>CVC</label>
-                        <input type="text" className={styles.input} placeholder="123" defaultValue="123" />
-                    </div>
-                </div>
-
-                <button type="submit" className={styles.payButton} disabled={loading}>
-                    {loading ? 'Processing...' : `Pay ${TOTAL.toFixed(2)} MAD`}
+                <button
+                    onClick={handleSubmit}
+                    className={styles.payButton}
+                    disabled={loading}
+                >
+                    {loading ? 'Redirecting to Stripe...' : `Pay ${TOTAL.toFixed(2)} MAD`}
                 </button>
 
                 {error && <div className={styles.error}>{error}</div>}
-            </form>
+            </div>
         </div>
     );
 }

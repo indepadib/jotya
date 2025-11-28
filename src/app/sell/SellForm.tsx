@@ -25,6 +25,7 @@ interface SellFormProps {
 }
 
 export default function SellForm({ initialData }: SellFormProps) {
+    console.log('SellForm rendering', { initialData, categoriesDefined: !!categories });
     const [images, setImages] = useState<string[]>(initialData ? JSON.parse(initialData.images) : []);
     const [labelImage, setLabelImage] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,12 +34,17 @@ export default function SellForm({ initialData }: SellFormProps) {
     const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
     const [aiData, setAiData] = useState<{
         brand?: string;
+        brandId?: string;
         color?: string;
+        colorId?: string;
         verified?: boolean;
         checks?: { name: string; passed: boolean }[];
         material?: string;
         style?: string;
         fit?: string;
+        gender?: string;
+        category?: string;
+        itemType?: string;
     } | null>(initialData ? {
         brand: initialData.brand || undefined,
         color: initialData.color || undefined,
@@ -146,27 +152,35 @@ export default function SellForm({ initialData }: SellFormProps) {
         if (images.length > 0 && !aiData && !isAnalyzing && !initialData) {
             const analyze = async () => {
                 setIsAnalyzing(true);
-                // Use the first image for analysis
-                const result = await analyzeListingImage(images[0], 'general');
-                if (result) {
-                    setAiData(prev => ({
-                        ...prev,
-                        brand: result.brand,
-                        color: result.color,
-                        material: result.material,
-                        style: result.style,
-                        fit: result.fit,
-                        // Keep existing checks if any, or use general ones
-                        checks: prev?.checks || result.checks
-                    }));
+                try {
+                    // Use the first image for analysis
+                    const result = await analyzeListingImage(images[0], 'general');
+                    if (result) {
+                        setAiData(prev => ({
+                            ...prev,
+                            brand: result.brand,
+                            color: result.color,
+                            material: result.material,
+                            style: result.style,
+                            fit: result.fit,
+                            // Keep existing checks if any, or use general ones
+                            checks: prev?.checks || result.checks,
+                            gender: result.gender,
+                            category: result.category,
+                            itemType: result.itemType
+                        }));
 
-                    // Auto-fill title if not set
-                    if (!title) {
-                        const richTitle = `${result.brand || ''} ${result.style || result.category || 'Item'} - ${result.color || ''} ${result.fit ? `(${result.fit})` : ''}`;
-                        setTitle(richTitle.trim());
+                        // Auto-fill title if not set
+                        if (!title) {
+                            const richTitle = `${result.brand || ''} ${result.style || result.category || 'Item'} - ${result.color || ''} ${result.fit ? `(${result.fit})` : ''}`;
+                            setTitle(richTitle.trim());
+                        }
                     }
+                } catch (error) {
+                    console.error('AI Analysis Failed:', error);
+                } finally {
+                    setIsAnalyzing(false);
                 }
-                setIsAnalyzing(false);
             };
             analyze();
         }
@@ -175,7 +189,14 @@ export default function SellForm({ initialData }: SellFormProps) {
     // Auto-fill brand when brands are loaded and AI has detected a brand
     useEffect(() => {
         if (aiData?.brand && brands.length > 0 && !brandId && !brand) {
-            // Find matching brand in the brands list (case-insensitive)
+            // Priority 1: Use ID returned by AI
+            if (aiData.brandId) {
+                setBrandId(aiData.brandId);
+                setBrand(aiData.brand);
+                return;
+            }
+
+            // Priority 2: Find matching brand in the brands list (case-insensitive)
             const matchingBrand = brands.find(b =>
                 b.name.toLowerCase() === aiData.brand!.toLowerCase()
             );
@@ -194,6 +215,13 @@ export default function SellForm({ initialData }: SellFormProps) {
     // Auto-fill color when colors are loaded and AI has detected a color
     useEffect(() => {
         if (aiData?.color && colors.length > 0 && !colorId && !color) {
+            // Priority 1: Use ID returned by AI
+            if (aiData.colorId) {
+                setColorId(aiData.colorId);
+                setColor(aiData.color);
+                return;
+            }
+
             const detectedColor = aiData.color.toLowerCase();
             console.log('AI detected color:', detectedColor);
             console.log('Available colors:', colors.map(c => c.name));
@@ -267,16 +295,27 @@ export default function SellForm({ initialData }: SellFormProps) {
         // Combine general images and label image if needed, or just store general
         // For now, we just store the general images array
         formData.set('images', JSON.stringify(images));
+
+        // Append reference IDs if they exist and are not 'other'
+        if (brandId && brandId !== 'other') formData.set('brandId', brandId);
+        if (colorId) formData.set('colorId', colorId);
+        if (sizeId) formData.set('sizeId', sizeId);
+
         if (aiData?.verified) {
             formData.set('verified', 'true');
             formData.set('aiConfidence', '0.99');
         }
 
-        if (initialData) {
-            formData.set('id', initialData.id);
-            await updateListing(formData);
-        } else {
-            await createListing(formData);
+        try {
+            if (initialData) {
+                formData.set('id', initialData.id);
+                await updateListing(formData);
+            } else {
+                await createListing(formData);
+            }
+        } catch (error) {
+            console.error('Submission error:', error);
+            alert('Failed to list item. Please try again.');
         }
         setIsSubmitting(false);
     };
@@ -377,6 +416,46 @@ export default function SellForm({ initialData }: SellFormProps) {
                 <div className={styles.section}>
                     <h2 className={styles.sectionTitle}>Category</h2>
 
+                    {aiData?.gender && aiData?.category && (
+                        <div className={styles.aiSuggestion} style={{
+                            background: '#f0f9ff', border: '1px solid #bae6fd', padding: '12px',
+                            borderRadius: '8px', marginBottom: '16px', display: 'flex',
+                            alignItems: 'center', justifyContent: 'space-between'
+                        }}>
+                            <div>
+                                <span style={{ marginRight: '8px' }}>✨ AI Suggestion:</span>
+                                <strong>{aiData.gender} &gt; {aiData.category} {aiData.itemType ? `> ${aiData.itemType}` : ''}</strong>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    // Simple mapping - in a real app, use a robust fuzzy matcher
+                                    const g = aiData.gender?.toLowerCase();
+                                    const c = aiData.category?.toLowerCase();
+
+                                    if (g && ['men', 'women', 'kids'].includes(g)) setGender(g);
+
+                                    // Map category names to keys
+                                    let cKey = '';
+                                    if (c?.includes('cloth')) cKey = 'clothing';
+                                    else if (c?.includes('shoe')) cKey = 'shoes';
+                                    else if (c?.includes('bag') || c?.includes('access')) cKey = 'accessories';
+
+                                    if (cKey) setCategory(cKey);
+
+                                    // Try to match item type if possible (simplified)
+                                    // This would need a lookup map in a real implementation
+                                }}
+                                style={{
+                                    background: '#0ea5e9', color: 'white', border: 'none',
+                                    padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 600
+                                }}
+                            >
+                                Apply
+                            </button>
+                        </div>
+                    )}
+
                     {/* Gender Selection */}
                     <div className={styles.formGroup}>
                         <label htmlFor="gender" className={styles.label}>Gender / Audience *</label>
@@ -429,6 +508,7 @@ export default function SellForm({ initialData }: SellFormProps) {
                     {category && gender && (
                         (() => {
                             const genderCat = categories[gender as GenderKey];
+                            if (!genderCat) return null;
                             const selectedCat = genderCat.categories[category as keyof typeof genderCat.categories] as any;
                             if (selectedCat && selectedCat.types) {
                                 return (
@@ -461,6 +541,7 @@ export default function SellForm({ initialData }: SellFormProps) {
                     {itemType && gender && category && (
                         (() => {
                             const genderCat = categories[gender as GenderKey];
+                            if (!genderCat) return null;
                             const selectedCat = genderCat.categories[category as keyof typeof genderCat.categories] as any;
                             if (selectedCat && selectedCat.types) {
                                 const selectedType = selectedCat.types[itemType] as any;

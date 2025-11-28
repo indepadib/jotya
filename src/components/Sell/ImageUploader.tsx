@@ -30,7 +30,7 @@ export default function ImageUploader({ onImagesChange, initialImages }: ImageUp
 
         try {
             const compressionOptions = {
-                maxSizeMB: 1,
+                maxSizeMB: 0.2,
                 maxWidthOrHeight: 1920,
                 useWebWorker: true,
                 fileType: 'image/jpeg'

@@ -178,52 +178,59 @@ export async function searchWithAI(query: string) {
 
 export async function generateListingDescription(input: string | any, type?: 'general' | 'label') {
     try {
+        console.log('[AI] Generating description...');
+
         // Case 1: Input is an object (Metadata for text generation)
         if (typeof input === 'object') {
-            const completion = await ai.chat.completions.create({
-                model: 'gpt-4o-mini',
-                messages: [
-                    {
-                        role: 'system',
-                        content: `You are a trendy seller on a fashion marketplace like Vinted or Depop. Write a catchy, concise description.
-            
-            Style Guide:
-            - Use emojis ✨
-            - Keep it short and punchy (under 100 words)
-            - Use bullet points for features
-            - Tone: Friendly, stylish, authentic (not corporate)
-            
-            Structure:
-            1. Catchy opening line
-            2. Bullet points for: Condition, Size/Fit, Material
-            3. Styling tip or "Why I love it"
-            
-            Return just the text.`
-                    },
-                    {
-                        role: 'user',
-                        content: `Write a description for this item: ${JSON.stringify(input)}`
-                    }
-                ]
-            });
-            return completion.choices[0].message.content;
+            console.log('[AI] Mode: Text Generation');
+            // ... existing code ...
         }
 
         // Case 2: Input is a string (Image Base64 for analysis)
+        console.log('[AI] Mode: Image Analysis');
+
+        // Fetch reference data to guide the AI
+        const [brands, colors] = await Promise.all([
+            prisma.brand.findMany({ select: { id: true, name: true } }),
+            prisma.color.findMany({ select: { id: true, name: true } })
+        ]);
+        console.log(`[AI] Loaded ${brands.length} brands and ${colors.length} colors for context.`);
+
+        const brandList = brands.map(b => b.name).join(', ');
+        const colorList = colors.map(c => c.name).join(', ');
+
         const prompt = type === 'label'
-            ? "Analyze this fashion item label. Is it authentic? Return JSON with { isAuthentic: boolean, brand: string, checks: [{name: string, passed: boolean}] }"
+            ? `Analyze this fashion item label. Is it authentic? 
+               Valid Brands: ${brandList}
+               Return JSON with { isAuthentic: boolean, brand: string, checks: [{name: string, passed: boolean}] }
+               If the brand matches one in the list, use the exact name.`
             : `You are a fashion expert. Analyze the image and generate a listing description for a marketplace.
+          
+          Context:
+          - Valid Brands: ${brandList}
+          - Valid Colors: ${colorList}
+          
+          Instructions:
+          - Identify the brand. If it matches a Valid Brand, use that EXACT name. If not, use the detected name.
+          - Identify the dominant color. Map it to the closest Valid Color.
+          - Determine the Gender (Men, Women, Kids, Unisex).
+          - Determine the Category (Clothing, Shoes, Accessories, Bags).
+          - Determine the specific Item Type (e.g., T-Shirt, Jeans, Sneakers, Handbag).
+          
           Return a JSON object with:
           - title (string): A catchy, descriptive title
           - description (string): A detailed description including color, style, and potential condition
-          - category (string): The most likely category
-          - brand (string, optional): If a logo is visible
-          - color (string): The dominant color
+          - gender (string): Men, Women, Kids, or Unisex
+          - category (string): Clothing, Shoes, Accessories, or Bags
+          - itemType (string): The specific type
+          - brand (string, optional): The detected brand name
+          - color (string): The detected color name
           - material (string, optional)
           - style (string, optional)
           - fit (string, optional)
           `;
 
+        console.log('[AI] Sending request to OpenAI...');
         const completion = await ai.chat.completions.create({
             model: 'gpt-4o-mini',
             messages: [
@@ -245,9 +252,45 @@ export async function generateListingDescription(input: string | any, type?: 'ge
         const content = completion.choices[0].message.content;
         if (!content) throw new Error('No response');
 
-        return JSON.parse(content);
+        console.log('[AI] Received response:', content);
+
+        const result = JSON.parse(content);
+
+        // Post-processing: Map to IDs
+        if (result.brand) {
+            const detectedBrand = result.brand.toLowerCase();
+
+            // 1. Exact match
+            let matchedBrand = brands.find(b => b.name.toLowerCase() === detectedBrand);
+
+            // 2. Partial match (AI result contains DB brand, e.g. "Nike Air" -> "Nike")
+            if (!matchedBrand) {
+                matchedBrand = brands.find((b: { name: string; id: string }) => detectedBrand.includes(b.name.toLowerCase()));
+            }
+
+            // 3. Reverse partial match (DB brand contains AI result, e.g. "Zara" -> "Zara Home")
+            if (!matchedBrand) {
+                matchedBrand = brands.find((b: { name: string; id: string }) => b.name.toLowerCase().includes(detectedBrand));
+            }
+
+            if (matchedBrand) {
+                result.brandId = matchedBrand.id;
+                result.brand = matchedBrand.name; // Normalize to our name
+            }
+        }
+
+        if (result.color) {
+            const matchedColor = colors.find(c => c.name.toLowerCase() === result.color.toLowerCase());
+            if (matchedColor) {
+                result.colorId = matchedColor.id;
+                result.color = matchedColor.name; // Normalize to our name
+            }
+        }
+
+        return result;
     } catch (error) {
         console.error('AI Description Error:', error);
+        if (error instanceof Error) console.error('Stack:', error.stack);
         return null;
     }
 }

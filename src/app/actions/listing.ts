@@ -28,6 +28,11 @@ export async function createListing(formData: FormData) {
     const itemType = formData.get('itemType') as string | null;
     const subtype = formData.get('subtype') as string | null;
 
+    // Reference IDs
+    const brandId = formData.get('brandId') as string | null;
+    const colorId = formData.get('colorId') as string | null;
+    const sizeId = formData.get('sizeId') as string | null;
+
     if (!title || !description || !priceStr || !condition || !size || !color || !imagesStr) {
         return { error: 'Missing required fields' };
     }
@@ -66,6 +71,9 @@ export async function createListing(formData: FormData) {
             status: 'AVAILABLE',
             verified,
             aiConfidence,
+            brandId: brandId || undefined,
+            colorId: colorId || undefined,
+            sizeId: sizeId || undefined,
         },
     });
 
@@ -105,6 +113,11 @@ export async function updateListing(formData: FormData) {
     const itemType = formData.get('itemType') as string | null;
     const subtype = formData.get('subtype') as string | null;
 
+    // Reference IDs
+    const brandId = formData.get('brandId') as string | null;
+    const colorId = formData.get('colorId') as string | null;
+    const sizeId = formData.get('sizeId') as string | null;
+
     if (!title || !description || !priceStr || !condition || !size || !color) {
         return { error: 'Missing required fields' };
     }
@@ -131,6 +144,9 @@ export async function updateListing(formData: FormData) {
             subtype: subtype || undefined,
             verified,
             aiConfidence,
+            brandId: brandId || undefined,
+            colorId: colorId || undefined,
+            sizeId: sizeId || undefined,
         },
     });
 

@@ -18,6 +18,11 @@ export default function SearchForm() {
     const [showCategories, setShowCategories] = useState(false);
     const [categoryPath, setCategoryPath] = useState<string[]>([]);
 
+    // Reference Data
+    const [brands, setBrands] = useState<{ id: string; name: string; verified: boolean }[]>([]);
+    const [colors, setColors] = useState<{ id: string; name: string; hexCode: string; category: string }[]>([]);
+    const [sizes, setSizes] = useState<{ id: string; value: string; system: string }[]>([]);
+
     // Filters
     const [brand, setBrand] = useState(searchParams.get('brand') || '');
     const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
@@ -49,7 +54,49 @@ export default function SearchForm() {
         if (path.length > 3) setSubtype(path[3]);
 
         setShowCategories(false);
+        setShowCategories(false);
     };
+
+    // Fetch reference data
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [brandsRes, colorsRes] = await Promise.all([
+                    fetch('/api/brands'),
+                    fetch('/api/colors')
+                ]);
+
+                if (brandsRes.ok) setBrands(await brandsRes.json());
+                if (colorsRes.ok) setColors(await colorsRes.json());
+            } catch (error) {
+                console.error('Error fetching reference data:', error);
+            }
+        };
+        fetchData();
+    }, []);
+
+    // Fetch sizes when category changes
+    useEffect(() => {
+        const fetchSizes = async () => {
+            // Determine size category mapping
+            let sizeCategory = 'clothing';
+            if (category === 'shoes') sizeCategory = 'shoes';
+            if (category === 'accessories') sizeCategory = 'accessories';
+            if (category === 'clothes') sizeCategory = 'clothing';
+
+            const params = new URLSearchParams({ category: sizeCategory });
+            if (gender) params.set('gender', gender);
+            // We don't filter by itemType here to show all relevant sizes for the category
+
+            try {
+                const res = await fetch(`/api/sizes?${params}`);
+                if (res.ok) setSizes(await res.json());
+            } catch (error) {
+                console.error('Error fetching sizes:', error);
+            }
+        };
+        fetchSizes();
+    }, [category, gender]);
 
     const fetchResults = async () => {
         setLoading(true);
@@ -243,13 +290,23 @@ export default function SearchForm() {
 
                 <div className={styles.filterSection}>
                     <label className={styles.filterLabel}>Brand</label>
-                    <input
-                        type="text"
+                    <select
                         className={styles.filterInput}
-                        placeholder="e.g. Nike"
                         value={brand}
                         onChange={(e) => setBrand(e.target.value)}
-                    />
+                    >
+                        <option value="">Any Brand</option>
+                        <optgroup label="Popular Brands">
+                            {brands.filter(b => b.verified).slice(0, 20).map(b => (
+                                <option key={b.id} value={b.name}>{b.name}</option>
+                            ))}
+                        </optgroup>
+                        <optgroup label="All Brands">
+                            {brands.map(b => (
+                                <option key={b.id} value={b.name}>{b.name}</option>
+                            ))}
+                        </optgroup>
+                    </select>
                 </div>
 
                 <div className={styles.filterSection}>
@@ -289,24 +346,44 @@ export default function SearchForm() {
 
                 <div className={styles.filterSection}>
                     <label className={styles.filterLabel}>Size</label>
-                    <input
-                        type="text"
+                    <select
                         className={styles.filterInput}
-                        placeholder="e.g. M, L, 42"
                         value={size}
                         onChange={(e) => setSize(e.target.value)}
-                    />
+                    >
+                        <option value="">Any Size</option>
+                        {sizes.map(s => (
+                            <option key={s.id} value={s.value + ' ' + s.system}>
+                                {s.value} ({s.system})
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 <div className={styles.filterSection}>
                     <label className={styles.filterLabel}>Color</label>
-                    <input
-                        type="text"
+                    <select
                         className={styles.filterInput}
-                        placeholder="e.g. Black, Blue"
                         value={color}
                         onChange={(e) => setColor(e.target.value)}
-                    />
+                    >
+                        <option value="">Any Color</option>
+                        <optgroup label="Primary Colors">
+                            {colors.filter(c => c.category === 'primary').map(c => (
+                                <option key={c.id} value={c.name}>{c.name}</option>
+                            ))}
+                        </optgroup>
+                        <optgroup label="Neutral Colors">
+                            {colors.filter(c => c.category === 'neutral').map(c => (
+                                <option key={c.id} value={c.name}>{c.name}</option>
+                            ))}
+                        </optgroup>
+                        <optgroup label="Other Colors">
+                            {colors.filter(c => !['primary', 'neutral'].includes(c.category)).map(c => (
+                                <option key={c.id} value={c.name}>{c.name}</option>
+                            ))}
+                        </optgroup>
+                    </select>
                 </div>
 
                 <div className={styles.filterSection}>
