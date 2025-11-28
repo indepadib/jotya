@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './checkout.module.css';
 
@@ -240,6 +238,36 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                 <div className={styles.section}>
                     <h2 className={styles.sectionTitle}>📍 Delivery Address</h2>
                     <div className={styles.formGrid}>
+                        <div style={{ position: 'relative', gridColumn: '1 / -1' }}>
+                            <input
+                                type="text"
+                                placeholder="Street Address * (Start typing...)"
+                                className={styles.input}
+                                value={street}
+                                onChange={e => {
+                                    setStreet(e.target.value);
+                                    setShowSuggestions(true);
+                                }}
+                                onFocus={() => street.length >= 3 && setShowSuggestions(true)}
+                                required
+                            />
+                            {loadingAddresses && (
+                                <div className={styles.loadingIndicator}>Searching...</div>
+                            )}
+                            {showSuggestions && addressSuggestions.length > 0 && (
+                                <div className={styles.suggestions}>
+                                    {addressSuggestions.map((suggestion, idx) => (
+                                        <div
+                                            key={idx}
+                                            className={styles.suggestionItem}
+                                            onClick={() => handleAddressSelect(suggestion)}
+                                        >
+                                            {suggestion.display_name}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                         <input
                             type="text"
                             placeholder="City *"
