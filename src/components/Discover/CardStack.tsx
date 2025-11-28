@@ -37,6 +37,14 @@ export default function CardStack({ gender, category }: CardStackProps) {
             const newLikedIds = [...likedIds, id];
             setLikedIds(newLikedIds);
 
+            // Save to favorites
+            try {
+                const { toggleFavorite } = await import('@/app/actions/favorite');
+                await toggleFavorite(id);
+            } catch (error) {
+                console.error('Failed to save favorite:', error);
+            }
+
             // Every 3 likes, fetch recommendations
             if (newLikedIds.length % 3 === 0) {
                 console.log('Fetching recommendations...');
