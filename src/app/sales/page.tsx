@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { markAsShipped } from '@/app/actions/fulfillment';
 import Link from 'next/link';
+import ShipmentTracker from '@/components/ShipmentTracker';
 
 export default async function SalesPage() {
     const session = await getSession();
@@ -30,7 +31,7 @@ export default async function SalesPage() {
                 </div>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    {sales.map((tx) => (
+                    {sales.map((tx: any) => (
                         <div key={tx.id} style={{
                             background: 'var(--surface)', borderRadius: 12, padding: 16,
                             border: '1px solid var(--border)', boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
@@ -115,7 +116,11 @@ export default async function SalesPage() {
                             {tx.status === 'SHIPPED' && (
                                 <div style={{ fontSize: '0.9rem', color: '#0369a1', background: '#e0f2fe', padding: 12, borderRadius: 8 }}>
                                     Waiting for buyer confirmation.
-                                    {tx.trackingNumber && <div>Tracking: <strong>{tx.trackingNumber}</strong></div>}
+                                    {tx.trackingNumber && (
+                                        <div style={{ marginTop: 8 }}>
+                                            <ShipmentTracker trackingNumber={tx.trackingNumber} carrier={tx.shippingMethod || 'AMANA'} />
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

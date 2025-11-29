@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import ShipmentTracker from '@/components/ShipmentTracker';
 
 interface PurchasesPageProps {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -76,6 +77,12 @@ export default async function PurchasesPage({ searchParams }: PurchasesPageProps
                                         {tx.status || 'PENDING'}
                                     </div>
                                 </div>
+
+                                {tx.status === 'SHIPPED' && tx.trackingNumber && (
+                                    <div style={{ marginTop: 8 }}>
+                                        <ShipmentTracker trackingNumber={tx.trackingNumber} carrier={tx.shippingMethod || 'AMANA'} />
+                                    </div>
+                                )}
 
                                 <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                                     {tx.status === 'SHIPPED' && (
