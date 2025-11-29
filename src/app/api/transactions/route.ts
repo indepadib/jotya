@@ -30,7 +30,7 @@ export async function POST(request: Request) {
         const fee = amount * 0.05; // 5% platform fee
         const netAmount = amount - fee;
 
-        // Create transaction
+        // Create transaction with full shipping and payment details
         const transaction = await prisma.transaction.create({
             data: {
                 buyerId: session,
@@ -40,9 +40,17 @@ export async function POST(request: Request) {
                 fee: fee,
                 netAmount: netAmount,
                 status: paymentMethod === 'COD' ? 'PENDING_COD' : 'PENDING',
-                // Store shipping info as JSON in a text field if your schema doesn't have dedicated fields
-                // You may need to add these fields to your Transaction model:
-                // shippingMethod, shippingAddress, shippingCost
+                // Shipping details
+                shippingMethod: shippingMethod,
+                shippingAddress: shippingAddress,
+                shippingCost: shippingCost,
+                // Payment details
+                paymentMethod: paymentMethod,
+                // Shipment status
+                shipmentStatus: 'PENDING_SHIPMENT',
+                // Escrow status
+                buyerConfirmed: false,
+                fundsReleased: false,
             }
         });
 

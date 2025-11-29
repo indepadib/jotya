@@ -51,23 +51,23 @@ model Wallet {
 }
 
 model Listing {
-  id               String        @id @default(cuid())
-  title            String
-  description      String
-  price            Float
-  images           String
+  id          String  @id @default(cuid())
+  title       String
+  description String
+  price       Float
+  images      String
   // Old fields - kept temporarily for migration
-  brand            String?
-  size             String?
-  color            String?
+  brand       String?
+  size        String?
+  color       String?
   // New reference relations
-  brandId          String?
-  sizeId           String?
-  colorId          String?
-  brandRef         Brand?        @relation(fields: [brandId], references: [id])
-  sizeRef          Size?         @relation(fields: [sizeId], references: [id])
-  colorRef         Color?        @relation(fields: [colorId], references: [id])
-  
+  brandId     String?
+  sizeId      String?
+  colorId     String?
+  brandRef    Brand?  @relation(fields: [brandId], references: [id])
+  sizeRef     Size?   @relation(fields: [sizeId], references: [id])
+  colorRef    Color?  @relation(fields: [colorId], references: [id])
+
   style            String?
   condition        String
   gender           String?
@@ -92,7 +92,7 @@ model Brand {
   id        String    @id @default(cuid())
   name      String    @unique
   slug      String    @unique
-  category  String?   // luxury, designer, streetwear, fast-fashion, moroccan
+  category  String? // luxury, designer, streetwear, fast-fashion, moroccan
   verified  Boolean   @default(false)
   popular   Boolean   @default(false)
   logo      String?
@@ -104,18 +104,18 @@ model Color {
   id        String    @id @default(cuid())
   name      String    @unique
   hexCode   String
-  category  String    // primary, neutral, pastel, vibrant, metallic, pattern
+  category  String // primary, neutral, pastel, vibrant, metallic, pattern
   createdAt DateTime  @default(now())
   listings  Listing[]
 }
 
 model Size {
   id        String    @id @default(cuid())
-  value     String    // e.g., "M", "38", "10"
-  system    String    // EU, US, UK, INT
-  category  String    // clothing, shoes, accessories
-  gender    String?   // men, women, kids, unisex
-  itemType  String?   // tops, bottoms, dresses, shoes
+  value     String // e.g., "M", "38", "10"
+  system    String // EU, US, UK, INT
+  category  String // clothing, shoes, accessories
+  gender    String? // men, women, kids, unisex
+  itemType  String? // tops, bottoms, dresses, shoes
   sortOrder Int       @default(0)
   createdAt DateTime  @default(now())
   listings  Listing[]
@@ -124,19 +124,45 @@ model Size {
 }
 
 model Transaction {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   buyerId   String
   sellerId  String
   listingId String
   amount    Float
   fee       Float
   netAmount Float
-  status    String   @default("PENDING")
+  status    String @default("PENDING")
+
+  // Shipping information
+  shippingMethod  String? // 'AMANA', 'YASSIR'
+  shippingAddress Json? // {street, city, postalCode, country, phone}
+  shippingCost    Float?
+
+  // Payment information
+  paymentMethod   String? // 'STRIPE', 'COD', 'PAYPAL'
+  stripeSessionId String?
+  stripePaymentId String?
+  paypalOrderId   String?
+
+  // Shipment tracking
+  trackingNumber String?
+  shipmentStatus String    @default("PENDING_SHIPMENT") // PENDING_SHIPMENT, SHIPPED, IN_TRANSIT, DELIVERED
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+
+  // Escrow & fund release
+  buyerConfirmed Boolean   @default(false)
+  confirmedAt    DateTime?
+  fundsReleased  Boolean   @default(false)
+  releasedAt     DateTime?
+
   createdAt DateTime @default(now())
-  review    Review?
-  buyer     User     @relation("Buyer", fields: [buyerId], references: [id])
-  listing   Listing  @relation(fields: [listingId], references: [id])
-  seller    User     @relation("Seller", fields: [sellerId], references: [id])
+  updatedAt DateTime @updatedAt
+
+  review  Review?
+  buyer   User    @relation("Buyer", fields: [buyerId], references: [id])
+  listing Listing @relation(fields: [listingId], references: [id])
+  seller  User    @relation("Seller", fields: [sellerId], references: [id])
 }
 
 model Message {
@@ -154,10 +180,10 @@ model Message {
   type        String  @default("TEXT") // TEXT, OFFER
   offerAmount Float?
   offerStatus String? // PENDING, ACCEPTED, REJECTED
-  
+
   // Notification fields
-  read        Boolean   @default(false)
-  readAt      DateTime?
+  read   Boolean   @default(false)
+  readAt DateTime?
 }
 
 model Favorite {
