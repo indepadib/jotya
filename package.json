@@ -14,6 +14,8 @@
     "seed": "tsx prisma/seeds/index.ts"
   },
   "dependencies": {
+    "@paypal/checkout-server-sdk": "^1.0.3",
+    "@paypal/react-paypal-js": "^8.9.2",
     "@prisma/client": "^5.22.0",
     "@supabase/supabase-js": "^2.84.0",
     "bcryptjs": "^3.0.3",

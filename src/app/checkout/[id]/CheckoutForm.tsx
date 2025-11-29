@@ -18,7 +18,7 @@ interface CheckoutFormProps {
 }
 
 type ShippingMethod = 'AMANA' | 'YASSIR' | 'HAND_DELIVERY';
-type PaymentMethod = 'STRIPE' | 'COD';
+type PaymentMethod = 'STRIPE' | 'COD' | 'PAYPAL';
 
 export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: CheckoutFormProps) {
     const [loading, setLoading] = useState(false);
@@ -122,54 +122,88 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
         e.preventDefault();
         setError('');
 
-        if (!validateAddress()) {
-            return;
-        }
+        if (!validateAddress()) return;
 
         setLoading(true);
 
         try {
+            const shippingAddress = { street, city, postalCode, country: 'Morocco', phone };
+
             if (paymentMethod === 'COD') {
-                // Create transaction directly without Stripe
-                const response = await fetch('/api/transactions', {
+                // Create transaction for COD
+                const res = await fetch('/api/transactions', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         listingId: listing.id,
-                        amount: TOTAL,
+                        amount: price,
                         shippingMethod,
-                        shippingAddress: { street, city, postalCode, phone },
+                        shippingAddress,
                         paymentMethod: 'COD',
                         shippingCost: SHIPPING
-                    }),
+                    })
                 });
 
-                const data = await response.json();
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to create order');
 
-                if (!response.ok) {
-                    throw new Error(data.error || 'Transaction creation failed');
-                }
-
-                // Redirect to success page
-                router.push('/purchases?success=true&cod=true');
-            } else {
-                // Stripe payment
-                const response = await fetch('/api/checkout', {
+                router.push('/purchases?success=true');
+            } else if (paymentMethod === 'PAYPAL') {
+                // Create PayPal order
+                const res = await fetch('/api/paypal/create-order', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         listingId: listing.id,
                         shippingMethod,
-                        shippingAddress: { street, city, postalCode, phone },
+                        shippingAddress,
                         shippingCost: SHIPPING
-                    }),
+                    })
                 });
 
-                const data = await response.json();
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to create PayPal order');
 
-                if (!response.ok) {
-                    throw new Error(data.error || 'Payment initiation failed');
-                }
+                // Open PayPal approval window
+                const approvalUrl = `https://www.paypal.com/checkoutnow?token=${data.orderID}`;
+                const paypalWindow = window.open(approvalUrl, 'PayPal', 'width=600,height=800');
+
+                // Wait for PayPal approval (simplified - in production use proper callback)
+                const checkPayPalStatus = setInterval(async () => {
+                    if (paypalWindow?.closed) {
+                        clearInterval(checkPayPalStatus);
+
+                        // Capture the payment
+                        const captureRes = await fetch('/api/paypal/capture-order', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                orderID: data.orderID,
+                                listingId: listing.id,
+                                shippingMethod,
+                                shippingAddress,
+                                shippingCost: SHIPPING
+                            })
+                        });
+
+                        const captureData = await captureRes.json();
+                        if (!captureRes.ok) {
+                            throw new Error(captureData.error || 'Failed to capture payment');
+                        }
+
+                        router.push('/purchases?success=true');
+                    }
+                }, 1000);
+            } else {
+                // Stripe payment
+                const res = await fetch('/api/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ listingId: listing.id })
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Checkout failed');
 
                 if (data.url) {
                     window.location.href = data.url;
@@ -320,6 +354,18 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                             <div>
                                 <strong>Cash on Delivery (COD)</strong>
                                 <span>Pay when you receive the item</span>
+                            </div>
+                        </label>
+                        <label className={styles.radioOption}>
+                            <input
+                                type="radio"
+                                value="PAYPAL"
+                                checked={paymentMethod === 'PAYPAL'}
+                                onChange={e => setPaymentMethod(e.target.value as PaymentMethod)}
+                            />
+                            <div>
+                                <strong>PayPal</strong>
+                                <span>Pay securely with PayPal account</span>
                             </div>
                         </label>
                     </div>
