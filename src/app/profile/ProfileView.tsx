@@ -238,7 +238,9 @@ export default function ProfileView({ user, stats }: ProfileViewProps) {
                                 </div>
 
                                 {sale.status === 'PAID' && (
-                                    <form action={markAsShipped.bind(null, sale.id)}>
+                                    <form action={async () => {
+                                        await markAsShipped(sale.id);
+                                    }}>
                                         <button
                                             type="submit"
                                             style={{
