@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
-export async function markAsShipped(transactionId: string) {
+export async function markAsShipped(transactionId: string, trackingNumber?: string) {
     const session = await getSession();
     if (!session) throw new Error('Unauthorized');
 
@@ -14,22 +14,22 @@ export async function markAsShipped(transactionId: string) {
 
     if (!transaction) throw new Error('Transaction not found');
     if (transaction.sellerId !== session) throw new Error('Unauthorized');
-    if (transaction.status !== 'COMPLETED' && transaction.status !== 'PAID') {
-        // Note: In our current simplified flow, 'COMPLETED' was used for "Paid". 
-        // We should probably transition to using 'PAID' initially, but for now let's accept COMPLETED as a starting point 
-        // or just check if it's NOT already shipped/delivered.
-        // Let's assume 'COMPLETED' meant "Payment Successful" in the previous step.
-    }
 
+    // Update transaction status and shipment details
     await prisma.transaction.update({
         where: { id: transactionId },
-        data: { status: 'SHIPPED' }
+        data: {
+            status: 'SHIPPED',
+            shipmentStatus: 'SHIPPED',
+            trackingNumber: trackingNumber,
+            shippedAt: new Date()
+        }
     });
 
-    // Notify buyer (optional system message)
+    // Notify buyer
     await prisma.message.create({
         data: {
-            content: `📦 Your item has been shipped!`,
+            content: `📦 Your item has been shipped! ${trackingNumber ? `Tracking Number: ${trackingNumber}` : ''}`,
             senderId: session,
             receiverId: transaction.buyerId,
             listingId: transaction.listingId,
@@ -52,16 +52,21 @@ export async function markAsDelivered(transactionId: string) {
     if (!transaction) throw new Error('Transaction not found');
     if (transaction.buyerId !== session) throw new Error('Unauthorized');
 
-    // Update status
+    // Update transaction status and escrow flags
     await prisma.transaction.update({
         where: { id: transactionId },
-        data: { status: 'DELIVERED' }
+        data: {
+            status: 'DELIVERED',
+            shipmentStatus: 'DELIVERED',
+            deliveredAt: new Date(),
+            buyerConfirmed: true,
+            confirmedAt: new Date(),
+            fundsReleased: true,
+            releasedAt: new Date()
+        }
     });
 
     // Release funds to seller
-    // In the previous transaction.ts, we added to 'pending'. Now we move from 'pending' to 'balance'.
-
-    // 1. Get current wallet
     const wallet = await prisma.wallet.findUnique({
         where: { userId: transaction.sellerId }
     });
@@ -72,6 +77,15 @@ export async function markAsDelivered(transactionId: string) {
             data: {
                 pending: { decrement: transaction.netAmount },
                 balance: { increment: transaction.netAmount }
+            }
+        });
+    } else {
+        // Create wallet if it doesn't exist (shouldn't happen usually but good safety)
+        await prisma.wallet.create({
+            data: {
+                userId: transaction.sellerId,
+                balance: transaction.netAmount,
+                pending: 0
             }
         });
     }
