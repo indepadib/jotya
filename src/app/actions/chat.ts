@@ -122,7 +122,8 @@ export async function getMessages(otherUserId: string) {
                     id: true,
                     title: true,
                     images: true,
-                    price: true
+                    price: true,
+                    status: true // Add status to check if item is sold
                 }
             }
         }

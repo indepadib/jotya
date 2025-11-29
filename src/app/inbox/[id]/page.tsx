@@ -121,7 +121,20 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                                                         />
                                                     )}
                                                     <div className={styles.offerItemInfo}>
-                                                        <div className={styles.offerItemTitle}>{msg.listing.title}</div>
+                                                        <div className={styles.offerItemTitle}>
+                                                            {msg.listing.title}
+                                                            {msg.listing.status === 'SOLD' && (
+                                                                <span style={{
+                                                                    marginLeft: '8px',
+                                                                    padding: '2px 8px',
+                                                                    background: '#fee2e2',
+                                                                    color: '#991b1b',
+                                                                    borderRadius: '4px',
+                                                                    fontSize: '0.75rem',
+                                                                    fontWeight: 700
+                                                                }}>SOLD</span>
+                                                            )}
+                                                        </div>
                                                         <div className={styles.offerItemPrice}>{msg.listing.price} MAD</div>
                                                     </div>
                                                 </div>
@@ -161,12 +174,27 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                                                 </div>
                                             )}
 
-                                            {/* Show Buy Now button for the buyer if accepted */}
-                                            {isMe && msg.offerStatus === 'ACCEPTED' && msg.listingId && (
+                                            {/* Show Buy Now button for the buyer if accepted AND item not sold */}
+                                            {isMe && msg.offerStatus === 'ACCEPTED' && msg.listingId && msg.listing?.status !== 'SOLD' && (
                                                 <div className={styles.offerActions}>
                                                     <Link href={`/checkout/${msg.listingId}`} className={styles.buyNowBtn}>
                                                         Buy Now for {msg.offerAmount} MAD
                                                     </Link>
+                                                </div>
+                                            )}
+
+                                            {/* Show item sold message if accepted but item is sold */}
+                                            {isMe && msg.offerStatus === 'ACCEPTED' && msg.listing?.status === 'SOLD' && (
+                                                <div style={{
+                                                    padding: '12px',
+                                                    background: '#fee2e2',
+                                                    color: '#991b1b',
+                                                    borderRadius: '8px',
+                                                    textAlign: 'center',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: 600
+                                                }}>
+                                                    ⛔ This item has been sold
                                                 </div>
                                             )}
 
