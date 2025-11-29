@@ -80,6 +80,19 @@ export async function POST(request: Request) {
             data: { status: 'SOLD' }
         });
 
+        // Update Seller Wallet (Pending Balance)
+        await prisma.wallet.upsert({
+            where: { userId: listing.sellerId },
+            create: {
+                userId: listing.sellerId,
+                balance: 0,
+                pending: netAmount
+            },
+            update: {
+                pending: { increment: netAmount }
+            }
+        });
+
         return NextResponse.json({
             success: true,
             transactionId: transaction.id,

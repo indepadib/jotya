@@ -66,6 +66,14 @@ export default function Menu({ isOpen, onClose }: MenuProps) {
                         </span>
                         <span>My Purchases</span>
                     </Link>
+                    <Link href="/sales" className={styles.link} onClick={onClose}>
+                        <span className={styles.icon}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </span>
+                        <span>My Sales</span>
+                    </Link>
                     <Link href="/favorites" className={styles.link} onClick={onClose}>
                         <span className={styles.icon}>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
