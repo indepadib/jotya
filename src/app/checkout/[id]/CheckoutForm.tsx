@@ -149,6 +149,15 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
 
                 router.push('/purchases?success=true');
             } else if (paymentMethod === 'PAYPAL') {
+                // Store checkout data in sessionStorage before redirect
+                sessionStorage.setItem('paypalCheckoutData', JSON.stringify({
+                    listingId: listing.id,
+                    shippingMethod,
+                    shippingAddress,
+                    shippingCost: SHIPPING,
+                    amount: price
+                }));
+
                 // Create PayPal order
                 const res = await fetch('/api/paypal/create-order', {
                     method: 'POST',
@@ -164,43 +173,12 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Failed to create PayPal order');
 
-                // Open PayPal approval window using the URL from PayPal
                 if (!data.approvalUrl) {
                     throw new Error('PayPal approval URL not received');
                 }
 
-                const paypalWindow = window.open(data.approvalUrl, 'PayPal', 'width=600,height=800');
-
-                if (!paypalWindow) {
-                    throw new Error('Failed to open PayPal window. Please allow popups for this site.');
-                }
-
-                // Wait for PayPal approval
-                const checkPayPalStatus = setInterval(async () => {
-                    if (paypalWindow?.closed) {
-                        clearInterval(checkPayPalStatus);
-
-                        // Capture the payment
-                        const captureRes = await fetch('/api/paypal/capture-order', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                orderID: data.orderID,
-                                listingId: listing.id,
-                                shippingMethod,
-                                shippingAddress,
-                                shippingCost: SHIPPING
-                            })
-                        });
-
-                        const captureData = await captureRes.json();
-                        if (!captureRes.ok) {
-                            throw new Error(captureData.error || 'Failed to capture payment');
-                        }
-
-                        router.push('/purchases?success=true');
-                    }
-                }, 1000);
+                // Redirect to PayPal (works on all devices including mobile)
+                window.location.href = data.approvalUrl;
             } else {
                 // Stripe payment
                 const res = await fetch('/api/checkout', {
