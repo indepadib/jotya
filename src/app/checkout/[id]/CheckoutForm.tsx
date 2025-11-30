@@ -403,9 +403,17 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                     className={styles.payButton}
                     disabled={loading}
                 >
-                    {loading
-                        ? (paymentMethod === 'COD' ? 'Creating Order...' : 'Redirecting to Stripe...')
-                        : (paymentMethod === 'COD' ? `Place Order (${TOTAL.toFixed(2)} MAD)` : `Pay ${TOTAL.toFixed(2)} MAD`)}
+                    {loading ? (
+                        paymentMethod === 'COD'
+                            ? 'Creating Order...'
+                            : paymentMethod === 'PAYPAL'
+                                ? 'Opening PayPal...'
+                                : 'Redirecting to Stripe...'
+                    ) : (
+                        paymentMethod === 'COD'
+                            ? `Place Order (${TOTAL.toFixed(2)} MAD)`
+                            : `Pay ${TOTAL.toFixed(2)} MAD`
+                    )}
                 </button>
 
                 {error && <div className={styles.error}>{error}</div>}
@@ -413,6 +421,11 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                 {paymentMethod === 'STRIPE' && (
                     <p className={styles.secureText}>
                         🔒 You will be redirected to Stripe for secure payment
+                    </p>
+                )}
+                {paymentMethod === 'PAYPAL' && (
+                    <p className={styles.secureText}>
+                        🔒 You will be redirected to PayPal for secure payment
                     </p>
                 )}
             </form>
