@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import styles from '../[id]/checkout.module.css';
 
-export default function PayPalSuccessPage() {
+function PayPalSuccessContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
@@ -132,5 +132,22 @@ export default function PayPalSuccessPage() {
                 }
             `}</style>
         </div>
+    );
+}
+
+export default function PayPalSuccessPage() {
+    return (
+        <Suspense fallback={
+            <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                minHeight: '100vh'
+            }}>
+                <div>Loading...</div>
+            </div>
+        }>
+            <PayPalSuccessContent />
+        </Suspense>
     );
 }

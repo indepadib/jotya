@@ -3,6 +3,9 @@ import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import ProfileView from './ProfileView';
 
+// Force dynamic rendering because this page uses cookies
+export const dynamic = 'force-dynamic';
+
 export default async function ProfilePage() {
     try {
         const session = await getSession();
