@@ -131,7 +131,7 @@ export default function ItemPageClient({
                             </div>
                         )}
                         <div className={styles.brandRow}>
-                            <span className={styles.brandName}>{listing.brand || 'Brand'}</span>
+                            <span className={styles.brandName}>{displayBrand || 'Brand'}</span>
                             {listing.verified && (
                                 <span className={styles.verifiedBadge} title="AI Verified Authentic">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className={styles.badgeIcon}>

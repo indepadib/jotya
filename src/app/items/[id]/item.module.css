@@ -69,6 +69,23 @@
 }
 
 @media (min-width: 768px) {
+
+    /* Larger images on desktop/laptop */
+    .galleryWrapper {
+        max-height: 400px;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .imageGallery {
+        height: 400px;
+    }
+
+    .galleryImage {
+        height: 400px;
+    }
+
+    /* Show navigation arrows on desktop */
     .navArrow {
         display: flex;
         align-items: center;
