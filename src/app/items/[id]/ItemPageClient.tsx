@@ -73,10 +73,17 @@ export default function ItemPageClient({
     const isOwner = currentUserId === listing.sellerId;
     const isSold = listing.status === 'SOLD';
 
-    // Get display values - use relation if available, fallback to string field
-    const displayBrand = listing.brandRef?.name || listing.brand;
-    const displayColor = listing.colorRef?.name || listing.color;
-    const displaySize = listing.sizeRef?.value || listing.size;
+    // Helper to check if value is a database ID (cuid)
+    const isDatabaseId = (value: string | null): boolean => {
+        if (!value) return false;
+        // CUIDs are 25 chars and alphanumeric
+        return value.length === 25 && /^c[a-z0-9]{24}$/i.test(value);
+    };
+
+    // Get display values - use relation if available, hide if it's a DB ID
+    const displayBrand = listing.brandRef?.name || (listing.brand && !isDatabaseId(listing.brand) ? listing.brand : null);
+    const displayColor = listing.colorRef?.name || (listing.color && !isDatabaseId(listing.color) ? listing.color : null);
+    const displaySize = listing.sizeRef?.value || (listing.size && !isDatabaseId(listing.size) ? listing.size : null);
 
     const handleOfferSubmit = async (amount: number) => {
         await createOffer(listing.id, amount);
