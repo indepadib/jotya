@@ -127,59 +127,59 @@ export default function ItemPageClient({
                         <p className={styles.price}>{listing.price} MAD</p>
                     </div>
 
-                    {/* Info Chips Grid */}
+                    {/* Product Info - Clean and Simple */}
                     <div className={styles.infoGrid}>
-                        <div className={styles.infoChip}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={styles.chipIcon}>
-                                <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                            <div className={styles.chipContent}>
-                                <span className={styles.chipLabel}>Brand</span>
-                                <span className={styles.chipValue}>{listing.brand || 'N/A'}</span>
+                        {listing.brand && (
+                            <div className={styles.infoChip}>
+                                <div className={styles.chipContent}>
+                                    <span className={styles.chipLabel}>Brand:</span>
+                                    <span className={styles.chipValue}>{listing.brand}</span>
+                                </div>
                             </div>
-                        </div>
-                        <div className={styles.infoChip}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={styles.chipIcon}>
-                                <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                            <div className={styles.chipContent}>
-                                <span className={styles.chipLabel}>Size</span>
-                                <span className={styles.chipValue}>{listing.size || 'N/A'}</span>
+                        )}
+                        {listing.size && (
+                            <div className={styles.infoChip}>
+                                <div className={styles.chipContent}>
+                                    <span className={styles.chipLabel}>Size:</span>
+                                    <span className={styles.chipValue}>{listing.size}</span>
+                                </div>
                             </div>
-                        </div>
+                        )}
                         <div className={styles.infoChip}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={styles.chipIcon}>
-                                <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
                             <div className={styles.chipContent}>
-                                <span className={styles.chipLabel}>Condition</span>
+                                <span className={styles.chipLabel}>Condition:</span>
                                 <span className={styles.chipValue}>{listing.condition}</span>
                             </div>
                         </div>
-                        <div className={styles.infoChip}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={styles.chipIcon}>
-                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-                                <circle cx="12" cy="12" r="3" fill="currentColor" />
-                            </svg>
-                            <div className={styles.chipContent}>
-                                <span className={styles.chipLabel}>Color</span>
-                                <span className={styles.chipValue}>{listing.color || 'N/A'}</span>
+                        {listing.color && (
+                            <div className={styles.infoChip}>
+                                <div className={styles.chipContent}>
+                                    <span className={styles.chipLabel}>Color:</span>
+                                    <span className={styles.chipValue}>{listing.color}</span>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* Expandable Description - Client Component for Interactivity */}
                     <ExpandableDescription description={listing.description} />
 
-                    {/* Enhanced Seller Card */}
+                    {/* Seller Section - Simple */}
                     <div className={styles.sellerSection}>
-                        <h3 className={styles.sectionTitle}>Meet the Seller</h3>
+                        <h3 className={styles.sectionTitle}>Seller</h3>
                         <div className={styles.sellerCard}>
                             <div className={styles.sellerAvatar}>
                                 {listing.seller.name ? listing.seller.name[0].toUpperCase() : 'U'}
                             </div>
                             <div className={styles.sellerInfo}>
                                 <span className={styles.sellerName}>{listing.seller.name}</span>
+                                <div className={styles.sellerMeta}>
+                                    <span className={styles.sellerRating}>
+                                        ★ {listing.seller.rating.toFixed(1)}
+                                    </span>
+                                    <span>•</span>
+                                    <span>Member since {memberSince}</span>
+                                </div>
                                 <VerificationBadge
                                     phoneVerified={listing.seller.phoneVerified}
                                     emailVerified={listing.seller.emailVerified}
@@ -187,68 +187,27 @@ export default function ItemPageClient({
                                     topRatedSeller={listing.seller.topRatedSeller}
                                     size="sm"
                                 />
-                                <div className={styles.sellerMeta}>
-                                    <span className={styles.sellerRating}>
-                                        ★ {listing.seller.rating.toFixed(1)}
-                                    </span>
-                                    <span className={styles.sellerSince}>Member since {memberSince}</span>
-                                </div>
                             </div>
                         </div>
-                        <div style={{ marginTop: '16px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        {!isOwner && (
                             <Link
                                 href={`/profile/${listing.seller.id}`}
                                 style={{
-                                    flex: '1 1 auto',
-                                    padding: '12px 20px',
+                                    display: 'block',
+                                    marginTop: '12px',
+                                    padding: '12px',
                                     background: 'var(--surface)',
                                     border: '2px solid var(--primary)',
-                                    borderRadius: 'var(--radius-full)',
+                                    borderRadius: '8px',
                                     color: 'var(--primary)',
                                     fontWeight: 600,
                                     textAlign: 'center',
-                                    fontSize: '0.9375rem',
-                                    transition: 'all 0.3s ease',
-                                    display: 'inline-block'
+                                    fontSize: '0.9375rem'
                                 }}
                             >
                                 View Profile →
                             </Link>
-                            {!isOwner && currentUserId && (
-                                <>
-                                    <button
-                                        onClick={() => setShowReportModal(true)}
-                                        style={{
-                                            padding: '10px 16px',
-                                            background: 'transparent',
-                                            border: '1.5px solid var(--border)',
-                                            borderRadius: 'var(--radius-md)',
-                                            color: 'var(--text-secondary)',
-                                            cursor: 'pointer',
-                                            fontSize: '0.875rem',
-                                            fontWeight: 500
-                                        }}
-                                    >
-                                        🚩 Report
-                                    </button>
-                                    <button
-                                        onClick={handleBlock}
-                                        style={{
-                                            padding: '10px 16px',
-                                            background: 'transparent',
-                                            border: '1.5px solid var(--border)',
-                                            borderRadius: 'var(--radius-md)',
-                                            color: 'var(--text-secondary)',
-                                            cursor: 'pointer',
-                                            fontSize: '0.875rem',
-                                            fontWeight: 500
-                                        }}
-                                    >
-                                        🚫 Block
-                                    </button>
-                                </>
-                            )}
-                        </div>
+                        )}
                     </div>
 
                     {/* Other Items from Seller */}
