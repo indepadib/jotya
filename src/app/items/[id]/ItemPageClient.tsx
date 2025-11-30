@@ -66,6 +66,17 @@ export default function ItemPageClient({
     const isOwner = currentUserId === listing.sellerId;
     const isSold = listing.status === 'SOLD';
 
+    // Filter function to check if value is readable (not a code)
+    const isReadableValue = (value: string | null): boolean => {
+        if (!value) return false;
+        // Check if it's too long (likely a code)
+        if (value.length > 20) return false;
+        // Check if it has too many numbers/special chars (likely a code)
+        const specialCharCount = (value.match(/[0-9A-Z]{3,}/g) || []).length;
+        if (specialCharCount > 0) return false;
+        return true;
+    };
+
     const handleOfferSubmit = async (amount: number) => {
         await createOffer(listing.id, amount);
     };
@@ -129,7 +140,7 @@ export default function ItemPageClient({
 
                     {/* Product Info - Clean and Simple */}
                     <div className={styles.infoGrid}>
-                        {listing.brand && (
+                        {listing.brand && isReadableValue(listing.brand) && (
                             <div className={styles.infoChip}>
                                 <div className={styles.chipContent}>
                                     <span className={styles.chipLabel}>Brand:</span>
@@ -137,7 +148,7 @@ export default function ItemPageClient({
                                 </div>
                             </div>
                         )}
-                        {listing.size && (
+                        {listing.size && isReadableValue(listing.size) && (
                             <div className={styles.infoChip}>
                                 <div className={styles.chipContent}>
                                     <span className={styles.chipLabel}>Size:</span>
@@ -151,7 +162,7 @@ export default function ItemPageClient({
                                 <span className={styles.chipValue}>{listing.condition}</span>
                             </div>
                         </div>
-                        {listing.color && (
+                        {listing.color && isReadableValue(listing.color) && (
                             <div className={styles.infoChip}>
                                 <div className={styles.chipContent}>
                                     <span className={styles.chipLabel}>Color:</span>
