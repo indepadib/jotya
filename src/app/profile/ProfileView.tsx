@@ -238,23 +238,63 @@ export default function ProfileView({ user, stats }: ProfileViewProps) {
                                 </div>
 
                                 {sale.status === 'PAID' && (
-                                    <form action={async () => {
-                                        await markAsShipped(sale.id);
-                                    }}>
+                                    <div style={{ display: 'flex', gap: 8 }}>
                                         <button
-                                            type="submit"
+                                            onClick={async () => {
+                                                try {
+                                                    const res = await fetch('/api/shipping/generate-label', {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({ transactionId: sale.id })
+                                                    });
+                                                    const data = await res.json();
+                                                    if (data.trackingNumber) {
+                                                        window.location.href = `/shipping/label/${data.trackingNumber}`;
+                                                    } else {
+                                                        alert('Error generating label: ' + (data.error || 'Unknown error'));
+                                                    }
+                                                } catch (err) {
+                                                    alert('Failed to generate label');
+                                                }
+                                            }}
                                             style={{
-                                                padding: '8px 16px', background: 'var(--primary)', color: 'white',
+                                                padding: '8px 16px', background: '#000', color: 'white',
                                                 borderRadius: 8, fontWeight: 600, border: 'none', cursor: 'pointer'
                                             }}
                                         >
-                                            Mark Shipped
+                                            📦 Generate Label
                                         </button>
-                                    </form>
+                                        <form action={async () => {
+                                            await markAsShipped(sale.id);
+                                        }}>
+                                            <button
+                                                type="submit"
+                                                style={{
+                                                    padding: '8px 16px', background: 'var(--primary)', color: 'white',
+                                                    borderRadius: 8, fontWeight: 600, border: 'none', cursor: 'pointer'
+                                                }}
+                                            >
+                                                Mark Shipped
+                                            </button>
+                                        </form>
+                                    </div>
                                 )}
-                                {sale.status === 'SHIPPED' && (
-                                    <div style={{ fontSize: '0.9rem', color: '#666', fontStyle: 'italic' }}>
-                                        Waiting for delivery
+                                {(sale.status === 'SHIPPED' || sale.status === 'IN_TRANSIT') && (
+                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                        <div style={{ fontSize: '0.9rem', color: '#666', fontStyle: 'italic' }}>
+                                            {sale.shipmentStatus === 'IN_TRANSIT' ? 'In Transit' : 'Waiting for delivery'}
+                                        </div>
+                                        {sale.trackingNumber && (
+                                            <Link
+                                                href={`/shipping/track/${sale.trackingNumber}`}
+                                                style={{
+                                                    padding: '6px 12px', background: '#f0f0f0', color: '#333',
+                                                    borderRadius: 6, fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none'
+                                                }}
+                                            >
+                                                Track
+                                            </Link>
+                                        )}
                                     </div>
                                 )}
                             </div>

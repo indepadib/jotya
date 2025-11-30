@@ -23,6 +23,7 @@ model User {
   emailVerified      Boolean             @default(false)
   idVerified         Boolean             @default(false)
   topRatedSeller     Boolean             @default(false)
+  address            Json?               // {street, city, postalCode, country, phone}
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   favorites          Favorite[]
@@ -150,6 +151,8 @@ model Transaction {
   shippedAt      DateTime?
   deliveredAt    DateTime?
 
+  shippingLabel   ShippingLabel?
+
   // Escrow & fund release
   buyerConfirmed Boolean   @default(false)
   confirmedAt    DateTime?
@@ -236,6 +239,33 @@ model Report {
   reporter    User     @relation("Reporter", fields: [reporterId], references: [id])
   reported    User     @relation("Reported", fields: [reportedId], references: [id])
   listing     Listing? @relation(fields: [listingId], references: [id])
+}
+
+model ShippingLabel {
+  id              String    @id @default(cuid())
+  trackingNumber  String    @unique
+  transactionId   String    @unique
+  transaction     Transaction @relation(fields: [transactionId], references: [id])
+  
+  carrier         String    // 'AMANA' | 'YASSIR' | 'COD'
+  carrierRef      String?   // External carrier tracking number
+  
+  pickupAddress   Json      // Seller address
+  deliveryAddress Json      // Buyer address
+  
+  weight          Float?    // in kg
+  dimensions      Json?     // {length, width, height} in cm
+  declaredValue   Float?    // for insurance
+  
+  qrCode          String    // QR code data (base64)
+  barcode         String?   // Barcode data
+  labelUrl        String?   // PDF URL if generated
+  
+  status          String    @default("PENDING_PICKUP")
+  statusHistory   Json      // Array of {status, timestamp, location, scannedBy}
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model BlockedUser {

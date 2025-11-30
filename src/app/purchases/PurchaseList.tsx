@@ -62,6 +62,30 @@ export default function PurchaseList({ purchases }: PurchaseListProps) {
                                     </button>
                                 )}
 
+                                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                                    <Link
+                                        href={`/items/${tx.listing.id}`}
+                                        style={{
+                                            flex: 1, padding: '8px', textAlign: 'center',
+                                            border: '1px solid #ddd', borderRadius: 8,
+                                            textDecoration: 'none', color: '#333', fontSize: '0.9rem', fontWeight: 600
+                                        }}
+                                    >
+                                        View Item
+                                    </Link>
+                                    {tx.trackingNumber && (
+                                        <Link
+                                            href={`/shipping/track/${tx.trackingNumber}`}
+                                            style={{
+                                                flex: 1, padding: '8px', textAlign: 'center',
+                                                background: '#000', color: 'white', borderRadius: 8,
+                                                textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600
+                                            }}
+                                        >
+                                            📦 Track Package
+                                        </Link>
+                                    )}
+                                </div>
                                 {tx.status === 'DELIVERED' && !tx.review && (
                                     <Link
                                         href={`/reviews/${tx.id}`}
