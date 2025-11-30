@@ -55,6 +55,9 @@ interface ItemPageClientProps {
     memberSince: number;
     images: string[];
     currentUserId?: string;
+    brandLookup?: { id: string; name: string } | null;
+    colorLookup?: { id: string; name: string } | null;
+    sizeLookup?: { id: string; value: string } | null;
 }
 
 export default function ItemPageClient({
@@ -63,7 +66,10 @@ export default function ItemPageClient({
     sellerOtherItems,
     memberSince,
     images,
-    currentUserId
+    currentUserId,
+    brandLookup,
+    colorLookup,
+    sizeLookup
 }: ItemPageClientProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -73,17 +79,10 @@ export default function ItemPageClient({
     const isOwner = currentUserId === listing.sellerId;
     const isSold = listing.status === 'SOLD';
 
-    // Helper to check if value is a database ID (cuid)
-    const isDatabaseId = (value: string | null): boolean => {
-        if (!value) return false;
-        // CUIDs are 25 chars and alphanumeric
-        return value.length === 25 && /^c[a-z0-9]{24}$/i.test(value);
-    };
-
-    // Get display values - use relation if available, hide if it's a DB ID
-    const displayBrand = listing.brandRef?.name || (listing.brand && !isDatabaseId(listing.brand) ? listing.brand : null);
-    const displayColor = listing.colorRef?.name || (listing.color && !isDatabaseId(listing.color) ? listing.color : null);
-    const displaySize = listing.sizeRef?.value || (listing.size && !isDatabaseId(listing.size) ? listing.size : null);
+    // Get display values - use manual lookups first, then relations, then string values
+    const displayBrand = brandLookup?.name || listing.brandRef?.name || listing.brand;
+    const displayColor = colorLookup?.name || listing.colorRef?.name || listing.color;
+    const displaySize = sizeLookup?.value || listing.sizeRef?.value || listing.size;
 
     const handleOfferSubmit = async (amount: number) => {
         await createOffer(listing.id, amount);

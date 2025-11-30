@@ -19,6 +19,27 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
         notFound();
     }
 
+    // Helper to check if value is a database ID
+    const isDatabaseId = (value: string | null): boolean => {
+        if (!value) return false;
+        return value.length === 25 && /^c[a-z0-9]{24}$/i.test(value);
+    };
+
+    // If brand/color/size fields contain IDs, look them up
+    let brandLookup = null;
+    let colorLookup = null;
+    let sizeLookup = null;
+
+    if (listing.brand && isDatabaseId(listing.brand)) {
+        brandLookup = await prisma.brand.findUnique({ where: { id: listing.brand } });
+    }
+    if (listing.color && isDatabaseId(listing.color)) {
+        colorLookup = await prisma.color.findUnique({ where: { id: listing.color } });
+    }
+    if (listing.size && isDatabaseId(listing.size)) {
+        sizeLookup = await prisma.size.findUnique({ where: { id: listing.size } });
+    }
+
     // Fetch similar items (same brand, or fallback to recent items for upselling)
     let similarItems = await prisma.listing.findMany({
         where: {
@@ -155,6 +176,9 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
             memberSince={memberSince}
             images={images}
             currentUserId={session}
+            brandLookup={brandLookup}
+            colorLookup={colorLookup}
+            sizeLookup={sizeLookup}
         />
     );
 }

@@ -9,8 +9,8 @@
 .galleryWrapper {
     position: relative;
     width: 100%;
-    max-height: 200px;
-    /* Compact for mobile */
+    max-height: 150px;
+    /* Very compact for mobile */
     background: #000;
 }
 
@@ -19,7 +19,7 @@
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
-    height: 200px;
+    height: 150px;
 }
 
 .imageGallery::-webkit-scrollbar {
@@ -28,9 +28,8 @@
 
 .galleryImage {
     width: 100%;
-    height: 200px;
+    height: 150px;
     object-fit: cover;
-    /* Fill frame, no black borders */
     flex-shrink: 0;
     scroll-snap-align: start;
     background: var(--surface);
