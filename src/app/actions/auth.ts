@@ -8,8 +8,16 @@ import bcrypt from 'bcryptjs';
 
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 1 week
 
-export async function signup(email: string, password: string, name: string) {
+export async function signup(prevState: any, formData: FormData) {
     try {
+        const name = formData.get('name') as string;
+        const email = formData.get('email') as string;
+        const password = formData.get('password') as string;
+
+        if (!name || !email || !password) {
+            return { error: 'All fields are required' };
+        }
+
         // Check if user exists
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
@@ -41,7 +49,12 @@ export async function signup(email: string, password: string, name: string) {
         });
 
         // Send verification email
-        await sendEmailVerification();
+        try {
+            await sendEmailVerification();
+        } catch (emailError) {
+            console.error('Failed to send verification email:', emailError);
+            // Continue even if email fails, or maybe warn user
+        }
 
         return { success: true };
     } catch (error) {
