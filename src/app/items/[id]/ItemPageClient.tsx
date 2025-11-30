@@ -24,11 +24,18 @@ interface Listing {
     brand: string | null;
     size: string | null;
     color: string | null;
+    brandRef?: { id: string; name: string } | null;
+    colorRef?: { id: string; name: string } | null;
+    sizeRef?: { id: string; value: string } | null;
     condition: string;
     description: string;
     verified: boolean;
     sellerId: string;
     status: string;
+    style?: string | null;
+    gender?: string | null;
+    category?: string | null;
+    itemType?: string | null;
     seller: {
         id: string;
         name: string;
@@ -66,16 +73,10 @@ export default function ItemPageClient({
     const isOwner = currentUserId === listing.sellerId;
     const isSold = listing.status === 'SOLD';
 
-    // Filter function to check if value is readable (not a code)
-    const isReadableValue = (value: string | null): boolean => {
-        if (!value) return false;
-        // Check if it's too long (likely a code)
-        if (value.length > 20) return false;
-        // Check if it has too many numbers/special chars (likely a code)
-        const specialCharCount = (value.match(/[0-9A-Z]{3,}/g) || []).length;
-        if (specialCharCount > 0) return false;
-        return true;
-    };
+    // Get display values - use relation if available, fallback to string field
+    const displayBrand = listing.brandRef?.name || listing.brand;
+    const displayColor = listing.colorRef?.name || listing.color;
+    const displaySize = listing.sizeRef?.value || listing.size;
 
     const handleOfferSubmit = async (amount: number) => {
         await createOffer(listing.id, amount);
@@ -138,21 +139,21 @@ export default function ItemPageClient({
                         <p className={styles.price}>{listing.price} MAD</p>
                     </div>
 
-                    {/* Product Info - Clean and Simple */}
+                    {/* Product Info - All Details */}
                     <div className={styles.infoGrid}>
-                        {listing.brand && isReadableValue(listing.brand) && (
+                        {displayBrand && (
                             <div className={styles.infoChip}>
                                 <div className={styles.chipContent}>
                                     <span className={styles.chipLabel}>Brand:</span>
-                                    <span className={styles.chipValue}>{listing.brand}</span>
+                                    <span className={styles.chipValue}>{displayBrand}</span>
                                 </div>
                             </div>
                         )}
-                        {listing.size && isReadableValue(listing.size) && (
+                        {displaySize && (
                             <div className={styles.infoChip}>
                                 <div className={styles.chipContent}>
                                     <span className={styles.chipLabel}>Size:</span>
-                                    <span className={styles.chipValue}>{listing.size}</span>
+                                    <span className={styles.chipValue}>{displaySize}</span>
                                 </div>
                             </div>
                         )}
@@ -162,11 +163,43 @@ export default function ItemPageClient({
                                 <span className={styles.chipValue}>{listing.condition}</span>
                             </div>
                         </div>
-                        {listing.color && isReadableValue(listing.color) && (
+                        {displayColor && (
                             <div className={styles.infoChip}>
                                 <div className={styles.chipContent}>
                                     <span className={styles.chipLabel}>Color:</span>
-                                    <span className={styles.chipValue}>{listing.color}</span>
+                                    <span className={styles.chipValue}>{displayColor}</span>
+                                </div>
+                            </div>
+                        )}
+                        {listing.style && (
+                            <div className={styles.infoChip}>
+                                <div className={styles.chipContent}>
+                                    <span className={styles.chipLabel}>Style:</span>
+                                    <span className={styles.chipValue}>{listing.style}</span>
+                                </div>
+                            </div>
+                        )}
+                        {listing.gender && (
+                            <div className={styles.infoChip}>
+                                <div className={styles.chipContent}>
+                                    <span className={styles.chipLabel}>For:</span>
+                                    <span className={styles.chipValue}>{listing.gender}</span>
+                                </div>
+                            </div>
+                        )}
+                        {listing.category && (
+                            <div className={styles.infoChip}>
+                                <div className={styles.chipContent}>
+                                    <span className={styles.chipLabel}>Category:</span>
+                                    <span className={styles.chipValue}>{listing.category}</span>
+                                </div>
+                            </div>
+                        )}
+                        {listing.itemType && (
+                            <div className={styles.infoChip}>
+                                <div className={styles.chipContent}>
+                                    <span className={styles.chipLabel}>Type:</span>
+                                    <span className={styles.chipValue}>{listing.itemType}</span>
                                 </div>
                             </div>
                         )}

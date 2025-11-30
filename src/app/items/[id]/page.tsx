@@ -7,7 +7,12 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
 
     const listing = await prisma.listing.findUnique({
         where: { id },
-        include: { seller: true },
+        include: {
+            seller: true,
+            brandRef: true,  // Get brand name from relation
+            colorRef: true,  // Get color name from relation
+            sizeRef: true    // Get size from relation
+        },
     });
 
     if (!listing) {
