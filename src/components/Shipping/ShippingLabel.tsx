@@ -17,7 +17,7 @@ export default function ShippingLabel({ label, seller, buyer, transaction }: Shi
     const handlePrint = useReactToPrint({
         content: () => componentRef.current,
         documentTitle: `Label-${label.trackingNumber}`,
-    });
+    } as any);
 
     return (
         <div className={styles.container}>
