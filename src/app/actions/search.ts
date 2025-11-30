@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { lookupListingsReferences } from '@/lib/listingHelpers';
 
 export interface SearchFilters {
     query?: string;
@@ -87,12 +88,17 @@ export async function searchListings(filters: SearchFilters) {
         orderBy,
         include: {
             seller: { select: { name: true, rating: true } },
+            brandRef: true,
+            colorRef: true,
+            sizeRef: true,
             // favoritedBy: session ? { where: { userId: session } } : false
         }
     });
 
-    // Transform to include isFavorited boolean
-    return listings.map(listing => ({
+    // Lookup brand/color/size values and transform
+    const withLookups = await lookupListingsReferences(listings);
+
+    return withLookups.map(listing => ({
         ...listing,
         isFavorited: false // session ? listing.favoritedBy.length > 0 : false
     }));

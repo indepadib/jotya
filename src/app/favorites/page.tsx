@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
+import { lookupListingsReferences } from '@/lib/listingHelpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,13 +11,29 @@ export default async function FavoritesPage() {
     const session = await getSession();
     if (!session) redirect('/login');
 
-    const favorites = await prisma.favorite.findMany({
+    const rawFavorites = await prisma.favorite.findMany({
         where: { userId: session },
         include: {
-            listing: true
+            listing: {
+                include: {
+                    brandRef: true,
+                    colorRef: true,
+                    sizeRef: true
+                }
+            }
         },
         orderBy: { createdAt: 'desc' }
     });
+
+    // Lookup brand/color/size values
+    const favoritesWithLookups = await Promise.all(
+        rawFavorites.map(async (fav) => ({
+            ...fav,
+            listing: (await lookupListingsReferences([fav.listing]))[0]
+        }))
+    );
+
+    const favorites = favoritesWithLookups;
 
     return (
         <div style={{
@@ -84,7 +101,7 @@ export default async function FavoritesPage() {
                                 title={fav.listing.title}
                                 price={fav.listing.price}
                                 image={images[0]}
-                                brand={fav.listing.brand || undefined}
+                                brand={fav.listing.displayBrand || fav.listing.brand || undefined}
                                 isFavorited={true}
                             />
                         );

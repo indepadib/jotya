@@ -230,8 +230,8 @@ export default function SearchForm() {
                             </button>
                             <div className={styles.itemInfo}>
                                 <div className={styles.itemPrice}>{item.price} MAD</div>
-                                <div className={styles.itemBrand}>{item.brand}</div>
-                                <div className={styles.itemSize}>{item.size}</div>
+                                <div className={styles.itemBrand}>{item.displayBrand || item.brand}</div>
+                                <div className={styles.itemSize}>{item.displaySize || item.size}</div>
                             </div>
                         </Link>
                     ))}
