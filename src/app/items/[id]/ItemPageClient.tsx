@@ -173,7 +173,7 @@ export default function ItemPageClient({
 
                     {/* Enhanced Seller Card */}
                     <div className={styles.sellerSection}>
-                        <h3 className={styles.sectionTitle}>Seller Information</h3>
+                        <h3 className={styles.sectionTitle}>Meet the Seller</h3>
                         <div className={styles.sellerCard}>
                             <div className={styles.sellerAvatar}>
                                 {listing.seller.name ? listing.seller.name[0].toUpperCase() : 'U'}
@@ -195,38 +195,60 @@ export default function ItemPageClient({
                                 </div>
                             </div>
                         </div>
-                        {!isOwner && currentUserId && (
-                            <div style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                                <button
-                                    onClick={() => setShowReportModal(true)}
-                                    style={{
-                                        padding: '8px 16px',
-                                        background: 'transparent',
-                                        border: '1px solid var(--border)',
-                                        borderRadius: 'var(--radius-md)',
-                                        color: 'var(--text-secondary)',
-                                        cursor: 'pointer',
-                                        fontSize: '0.9rem'
-                                    }}
-                                >
-                                    🚩 Report
-                                </button>
-                                <button
-                                    onClick={handleBlock}
-                                    style={{
-                                        padding: '8px 16px',
-                                        background: 'transparent',
-                                        border: '1px solid var(--border)',
-                                        borderRadius: 'var(--radius-md)',
-                                        color: 'var(--text-secondary)',
-                                        cursor: 'pointer',
-                                        fontSize: '0.9rem'
-                                    }}
-                                >
-                                    🚫 Block
-                                </button>
-                            </div>
-                        )}
+                        <div style={{ marginTop: '16px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                            <Link
+                                href={`/profile/${listing.seller.id}`}
+                                style={{
+                                    flex: '1 1 auto',
+                                    padding: '12px 20px',
+                                    background: 'var(--surface)',
+                                    border: '2px solid var(--primary)',
+                                    borderRadius: 'var(--radius-full)',
+                                    color: 'var(--primary)',
+                                    fontWeight: 600,
+                                    textAlign: 'center',
+                                    fontSize: '0.9375rem',
+                                    transition: 'all 0.3s ease',
+                                    display: 'inline-block'
+                                }}
+                            >
+                                View Profile →
+                            </Link>
+                            {!isOwner && currentUserId && (
+                                <>
+                                    <button
+                                        onClick={() => setShowReportModal(true)}
+                                        style={{
+                                            padding: '10px 16px',
+                                            background: 'transparent',
+                                            border: '1.5px solid var(--border)',
+                                            borderRadius: 'var(--radius-md)',
+                                            color: 'var(--text-secondary)',
+                                            cursor: 'pointer',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500
+                                        }}
+                                    >
+                                        🚩 Report
+                                    </button>
+                                    <button
+                                        onClick={handleBlock}
+                                        style={{
+                                            padding: '10px 16px',
+                                            background: 'transparent',
+                                            border: '1.5px solid var(--border)',
+                                            borderRadius: 'var(--radius-md)',
+                                            color: 'var(--text-secondary)',
+                                            cursor: 'pointer',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500
+                                        }}
+                                    >
+                                        🚫 Block
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </div>
 
                     {/* Other Items from Seller */}
