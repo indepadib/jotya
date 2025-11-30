@@ -8,7 +8,10 @@ const paypal = require('@paypal/checkout-server-sdk');
 function paypalClient() {
     const clientId = process.env.PAYPAL_CLIENT_ID;
     const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
-    const environment = process.env.NODE_ENV === 'production'
+
+    // Explicitly check for 'live' mode, otherwise default to sandbox
+    // This allows using sandbox credentials even in production builds (Netlify)
+    const environment = process.env.PAYPAL_MODE === 'live'
         ? new paypal.core.LiveEnvironment(clientId, clientSecret)
         : new paypal.core.SandboxEnvironment(clientId, clientSecret);
 
