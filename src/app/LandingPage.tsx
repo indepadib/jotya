@@ -312,7 +312,7 @@ export default function LandingPage({ featuredListings }: LandingProps) {
                                     title={listing.title}
                                     price={listing.price}
                                     image={images[0]}
-                                    brand={listing.brand}
+                                    brand={listing.displayBrand || listing.brand}
                                     isFavorited={listing.isFavorited}
                                 />
                             );
