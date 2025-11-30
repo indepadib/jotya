@@ -93,8 +93,16 @@ export async function POST(request: Request) {
         const client = paypalClient();
         const order = await client.execute(requestOrder);
 
+        // Extract the approval URL from PayPal response
+        const approvalUrl = order.result.links?.find((link: any) => link.rel === 'approve')?.href;
+
+        if (!approvalUrl) {
+            throw new Error('PayPal approval URL not found in response');
+        }
+
         return NextResponse.json({
-            orderID: order.result.id
+            orderID: order.result.id,
+            approvalUrl: approvalUrl
         });
 
     } catch (error: any) {

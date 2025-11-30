@@ -164,11 +164,18 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Failed to create PayPal order');
 
-                // Open PayPal approval window
-                const approvalUrl = `https://www.paypal.com/checkoutnow?token=${data.orderID}`;
-                const paypalWindow = window.open(approvalUrl, 'PayPal', 'width=600,height=800');
+                // Open PayPal approval window using the URL from PayPal
+                if (!data.approvalUrl) {
+                    throw new Error('PayPal approval URL not received');
+                }
 
-                // Wait for PayPal approval (simplified - in production use proper callback)
+                const paypalWindow = window.open(data.approvalUrl, 'PayPal', 'width=600,height=800');
+
+                if (!paypalWindow) {
+                    throw new Error('Failed to open PayPal window. Please allow popups for this site.');
+                }
+
+                // Wait for PayPal approval
                 const checkPayPalStatus = setInterval(async () => {
                     if (paypalWindow?.closed) {
                         clearInterval(checkPayPalStatus);
