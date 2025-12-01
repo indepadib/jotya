@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { ShipmentStatus } from '@/lib/shipping';
 import { CarrierFactory } from '@/lib/shipping/CarrierFactory';
+import { sendEmail, EMAIL_TEMPLATES } from '@/lib/email';
 
 export async function POST(req: NextRequest) {
     try {
@@ -101,6 +102,16 @@ export async function POST(req: NextRequest) {
                 shipmentStatus: 'PENDING_SHIPMENT'
             }
         });
+
+        // Send Email Notification to Buyer
+        if (transaction.buyer.email) {
+            const trackingUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/shipping/track/${carrierLabel.trackingNumber}`;
+            await sendEmail({
+                to: transaction.buyer.email,
+                subject: `Your Order Shipped! (${carrierLabel.trackingNumber})`,
+                html: EMAIL_TEMPLATES.LABEL_GENERATED(transaction.buyer.name || 'Buyer', carrierLabel.trackingNumber, trackingUrl)
+            });
+        }
 
         return NextResponse.json(label);
 

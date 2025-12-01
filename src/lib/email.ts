@@ -1,76 +1,56 @@
 import { Resend } from 'resend';
 
-export async function sendMessageNotification(
-    toEmail: string,
-    fromName: string,
-    messagePreview: string
-) {
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+export async function sendEmail({
+    to,
+    subject,
+    html,
+}: {
+    to: string;
+    subject: string;
+    html: string;
+}) {
     try {
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        await resend.emails.send({
-            from: 'Jotya <notifications@jotya.com>',
-            to: toEmail,
-            subject: `New message from ${fromName}`,
-            html: `
-                <h2>You have a new message on Jotya</h2>
-                <p><strong>${fromName}</strong> sent you a message:</p>
-                <blockquote style="padding: 10px; background: #f5f5f5; border-left: 3px solid #007bff;">
-                    ${messagePreview}
-                </blockquote>
-                <p><a href="https://jotya.netlify.app/inbox" style="color: #007bff;">View in Jotya</a></p>
-            `
+        const data = await resend.emails.send({
+            from: 'Jotya <noreply@jotya.com>', // Update with verified domain if available
+            to,
+            subject,
+            html,
         });
+        return { success: true, data };
     } catch (error) {
-        console.error('Failed to send message notification:', error);
+        console.error('Failed to send email:', error);
+        return { success: false, error };
     }
 }
 
-export async function sendOfferNotification(
-    toEmail: string,
-    fromName: string,
-    amount: number,
-    itemTitle: string
-) {
-    try {
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        await resend.emails.send({
-            from: 'Jotya <notifications@jotya.com>',
-            to: toEmail,
-            subject: `New offer for ${itemTitle}`,
-            html: `
-                <h2>You received a new offer!</h2>
-                <p><strong>${fromName}</strong> made an offer on your item:</p>
-                <p style="font-size: 18px;"><strong>${itemTitle}</strong></p>
-                <p style="font-size: 24px; color: #28a745;"><strong>${amount} MAD</strong></p>
-                <p><a href="https://jotya.netlify.app/inbox" style="color: #007bff;">View Offer</a></p>
-            `
-        });
-    } catch (error) {
-        console.error('Failed to send offer notification:', error);
-    }
-}
-
-export async function sendOfferResponseNotification(
-    toEmail: string,
-    status: 'ACCEPTED' | 'REJECTED',
-    itemTitle: string
-) {
-    const statusText = status === 'ACCEPTED' ? 'accepted' : 'declined';
-    const color = status === 'ACCEPTED' ? '#28a745' : '#dc3545';
-
-    try {
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        await resend.emails.send({
-            from: 'Jotya <notifications@jotya.com>',
-            to: toEmail,
-            subject: `Offer ${statusText} for ${itemTitle}`,
-            html: `
-                <h2>Offer ${statusText}</h2>
-                <p>Your offer for <strong>${itemTitle}</strong> has been <span style="color: ${color}; font-weight: bold;">${statusText}</span>.</p>
-                ${status === 'ACCEPTED' ? '<p><a href="https://jotya.netlify.app/inbox" style="color: #007bff;">Continue to checkout</a></p>' : ''}
-            `
-        });
-    } catch (error) {
-        console.error('Failed to send offer response notification:', error);
-    }
-}
+export const EMAIL_TEMPLATES = {
+    LABEL_GENERATED: (buyerName: string, trackingNumber: string, trackingUrl: string) => `
+        <h1>Order Shipped!</h1>
+        <p>Hi ${buyerName},</p>
+        <p>Good news! Your order has been shipped.</p>
+        <p><strong>Tracking Number:</strong> ${trackingNumber}</p>
+        <p>You can track your package here: <a href="${trackingUrl}">Track Package</a></p>
+        <br/>
+        <p>Thanks,<br/>The Jotya Team</p>
+    `,
+    OUT_FOR_DELIVERY: (buyerName: string, trackingNumber: string) => `
+        <h1>Out for Delivery</h1>
+        <p>Hi ${buyerName},</p>
+        <p>Your package (${trackingNumber}) is out for delivery today!</p>
+        <p>Please be ready to receive it.</p>
+    `,
+    DELIVERED_BUYER: (buyerName: string, trackingNumber: string) => `
+        <h1>Package Delivered</h1>
+        <p>Hi ${buyerName},</p>
+        <p>Your package (${trackingNumber}) has been delivered.</p>
+        <p>If you have any issues, please report them within 48 hours.</p>
+    `,
+    DELIVERED_SELLER: (sellerName: string, amount: number) => `
+        <h1>Funds Released!</h1>
+        <p>Hi ${sellerName},</p>
+        <p>Your package has been delivered and <strong>${amount} MAD</strong> has been added to your wallet.</p>
+        <p>Keep up the great work!</p>
+    `
+};

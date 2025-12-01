@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { ShipmentStatus } from '@/lib/shipping';
+import { sendEmail, EMAIL_TEMPLATES } from '@/lib/email';
 
 export async function POST(req: NextRequest) {
     try {
@@ -69,10 +70,50 @@ export async function POST(req: NextRequest) {
                 console.log(`Funds released for transaction ${transaction.id}: ${transaction.amount} MAD`);
             }
 
-            return updatedLabel;
+            return { updatedLabel, transaction, statusChanged: label.status !== status };
         });
 
-        return NextResponse.json(result);
+        // 5. Send Emails (Outside Transaction)
+        const { transaction, statusChanged } = result as any;
+
+        if (statusChanged) {
+            // Fetch buyer/seller emails if needed (or assume we need to fetch them now)
+            const fullTransaction = await prisma.transaction.findUnique({
+                where: { id: transaction.id },
+                include: { buyer: true, seller: true }
+            });
+
+            if (fullTransaction) {
+                if (status === ShipmentStatus.OUT_FOR_DELIVERY && fullTransaction.buyer.email) {
+                    await sendEmail({
+                        to: fullTransaction.buyer.email,
+                        subject: `Out for Delivery: ${trackingNumber}`,
+                        html: EMAIL_TEMPLATES.OUT_FOR_DELIVERY(fullTransaction.buyer.name || 'Buyer', trackingNumber)
+                    });
+                }
+
+                if (status === ShipmentStatus.DELIVERED) {
+                    // Email Buyer
+                    if (fullTransaction.buyer.email) {
+                        await sendEmail({
+                            to: fullTransaction.buyer.email,
+                            subject: `Delivered: ${trackingNumber}`,
+                            html: EMAIL_TEMPLATES.DELIVERED_BUYER(fullTransaction.buyer.name || 'Buyer', trackingNumber)
+                        });
+                    }
+                    // Email Seller
+                    if (fullTransaction.seller.email) {
+                        await sendEmail({
+                            to: fullTransaction.seller.email,
+                            subject: `Item Delivered - Funds Released`,
+                            html: EMAIL_TEMPLATES.DELIVERED_SELLER(fullTransaction.seller.name || 'Seller', fullTransaction.amount)
+                        });
+                    }
+                }
+            }
+        }
+
+        return NextResponse.json(result.updatedLabel);
 
     } catch (error) {
         console.error('Error updating shipping status:', error);
