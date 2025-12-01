@@ -18,39 +18,61 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Shipping label not found' }, { status: 404 });
         }
 
-        // Append to history
-        const currentHistory = (label.statusHistory as any[]) || [];
-        const newHistoryItem = {
-            status,
-            timestamp: new Date().toISOString(),
-            location: location || 'Unknown Location',
-            notes: notes || '',
-            scannedBy: scannedBy || 'Carrier'
-        };
-
-        const updatedLabel = await prisma.shippingLabel.update({
-            where: { trackingNumber },
-            data: {
+        const result = await prisma.$transaction(async (tx) => {
+            // 1. Update Label History
+            const currentHistory = (label.statusHistory as any[]) || [];
+            const newHistoryItem = {
                 status,
-                statusHistory: [...currentHistory, newHistoryItem]
+                timestamp: new Date().toISOString(),
+                location: location || 'Unknown Location',
+                notes: notes || '',
+                scannedBy: scannedBy || 'Carrier'
+            };
+
+            const updatedLabel = await tx.shippingLabel.update({
+                where: { trackingNumber },
+                data: {
+                    status,
+                    statusHistory: [...currentHistory, newHistoryItem]
+                }
+            });
+
+            // 2. Determine Transaction Status
+            let transactionStatus = 'IN_TRANSIT';
+            if (status === ShipmentStatus.DELIVERED) transactionStatus = 'DELIVERED';
+            if (status === ShipmentStatus.PENDING_PICKUP) transactionStatus = 'PENDING_SHIPMENT';
+
+            // 3. Update Transaction
+            const transaction = await tx.transaction.update({
+                where: { id: label.transactionId },
+                data: {
+                    shipmentStatus: transactionStatus,
+                    ...(status === ShipmentStatus.DELIVERED ? { deliveredAt: new Date() } : {}),
+                    ...(status === ShipmentStatus.PICKED_UP ? { shippedAt: new Date() } : {})
+                }
+            });
+
+            // 4. Fund Release Logic (If Delivered and not previously delivered)
+            if (status === ShipmentStatus.DELIVERED && label.status !== ShipmentStatus.DELIVERED) {
+                // Credit Seller's Wallet
+                await tx.wallet.upsert({
+                    where: { userId: transaction.sellerId },
+                    update: {
+                        balance: { increment: transaction.amount }
+                    },
+                    create: {
+                        userId: transaction.sellerId,
+                        balance: transaction.amount
+                    }
+                });
+
+                console.log(`Funds released for transaction ${transaction.id}: ${transaction.amount} MAD`);
             }
+
+            return updatedLabel;
         });
 
-        // Update transaction status mapping
-        let transactionStatus = 'IN_TRANSIT';
-        if (status === ShipmentStatus.DELIVERED) transactionStatus = 'DELIVERED';
-        if (status === ShipmentStatus.PENDING_PICKUP) transactionStatus = 'PENDING_SHIPMENT';
-
-        await prisma.transaction.update({
-            where: { id: label.transactionId },
-            data: {
-                shipmentStatus: transactionStatus,
-                ...(status === ShipmentStatus.DELIVERED ? { deliveredAt: new Date() } : {}),
-                ...(status === ShipmentStatus.PICKED_UP ? { shippedAt: new Date() } : {})
-            }
-        });
-
-        return NextResponse.json(updatedLabel);
+        return NextResponse.json(result);
 
     } catch (error) {
         console.error('Error updating shipping status:', error);
