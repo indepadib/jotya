@@ -53,22 +53,8 @@ export async function POST(req: NextRequest) {
                 }
             });
 
-            // 4. Fund Release Logic (If Delivered and not previously delivered)
-            if (status === ShipmentStatus.DELIVERED && label.status !== ShipmentStatus.DELIVERED) {
-                // Credit Seller's Wallet
-                await tx.wallet.upsert({
-                    where: { userId: transaction.sellerId },
-                    update: {
-                        balance: { increment: transaction.amount }
-                    },
-                    create: {
-                        userId: transaction.sellerId,
-                        balance: transaction.amount
-                    }
-                });
-
-                console.log(`Funds released for transaction ${transaction.id}: ${transaction.amount} MAD`);
-            }
+            // 4. Fund Release Logic REMOVED for Buyer Protection
+            // Funds are now released via /api/transaction/complete or after 48h
 
             return { updatedLabel, transaction, statusChanged: label.status !== status };
         });
@@ -101,12 +87,17 @@ export async function POST(req: NextRequest) {
                             html: EMAIL_TEMPLATES.DELIVERED_BUYER(fullTransaction.buyer.name || 'Buyer', trackingNumber)
                         });
                     }
-                    // Email Seller
+                    // Email Seller - Update message
                     if (fullTransaction.seller.email) {
                         await sendEmail({
                             to: fullTransaction.seller.email,
-                            subject: `Item Delivered - Funds Released`,
-                            html: EMAIL_TEMPLATES.DELIVERED_SELLER(fullTransaction.seller.name || 'Seller', fullTransaction.amount)
+                            subject: `Item Delivered - Funds Pending`,
+                            html: `
+                                <h1>Item Delivered</h1>
+                                <p>Hi ${fullTransaction.seller.name || 'Seller'},</p>
+                                <p>Your package has been delivered.</p>
+                                <p>Funds will be released in 48 hours if no issue is reported by the buyer.</p>
+                            `
                         });
                     }
                 }

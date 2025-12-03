@@ -1,8 +1,11 @@
 import { prisma } from '@/lib/prisma';
 import { SHIPMENT_STATUS_LABELS } from '@/lib/shipping';
+import { getSession } from '@/lib/auth';
+import BuyerProtectionActions from '@/components/Shipping/BuyerProtectionActions';
 
 export default async function TrackingPage({ params }: { params: { number: string } }) {
     const { number } = await params;
+    const session = await getSession();
 
     const label = await prisma.shippingLabel.findUnique({
         where: { trackingNumber: number },
@@ -14,6 +17,8 @@ export default async function TrackingPage({ params }: { params: { number: strin
             }
         }
     });
+
+    const isBuyer = session && label?.transaction.buyerId === session;
 
     if (!label) {
         return (
@@ -102,6 +107,11 @@ export default async function TrackingPage({ params }: { params: { number: strin
                         </div>
                     </div>
                 </div>
+
+                {/* Buyer Protection Actions */}
+                {isBuyer && label.status === 'DELIVERED' && label.transaction.shipmentStatus !== 'COMPLETED' && label.transaction.shipmentStatus !== 'DISPUTE' && (
+                    <BuyerProtectionActions transactionId={label.transactionId} />
+                )}
             </div>
         </div>
     );

@@ -54,3 +54,25 @@ export const EMAIL_TEMPLATES = {
         <p>Keep up the great work!</p>
     `
 };
+
+export async function sendMessageNotification(
+    recipientEmail: string,
+    senderName: string,
+    messagePreview: string
+) {
+    return sendEmail({
+        to: recipientEmail,
+        subject: `New message from ${senderName} on Jotya`,
+        html: `
+            <h1>You have a new message</h1>
+            <p>Hi,</p>
+            <p><strong>${senderName}</strong> sent you a message:</p>
+            <blockquote style="border-left: 3px solid #0ea5e9; padding-left: 16px; margin: 16px 0; color: #666;">
+                ${messagePreview}${messagePreview.length >= 100 ? '...' : ''}
+            </blockquote>
+            <p><a href="https://jotya.com/inbox" style="display: inline-block; padding: 12px 24px; background: #0ea5e9; color: white; text-decoration: none; border-radius: 8px;">View Message</a></p>
+            <br/>
+            <p>Thanks,<br/>The Jotya Team</p>
+        `
+    });
+}

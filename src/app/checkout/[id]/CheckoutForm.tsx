@@ -52,15 +52,34 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
     const price = effectivePrice || listing.price;
     const PROTECTION_FEE = price * 0.05; // 5% Buyer Protection
 
+    const [shippingCost, setShippingCost] = useState(35);
+    const [calculatingShipping, setCalculatingShipping] = useState(false);
+
     // Dynamic shipping cost
-    const getShippingCost = () => {
-        switch (shippingMethod) {
-            case 'AMANA': return 35;
-            case 'YASSIR': return 25;
-            default: return 35; // Default to Amana
-        }
-    };
-    const SHIPPING = getShippingCost();
+    useEffect(() => {
+        const fetchShipping = async () => {
+            if (!city) return;
+            setCalculatingShipping(true);
+            try {
+                // Import dynamically to avoid server-side issues in client component if needed
+                const { calculateShipping } = await import('@/app/actions/shipping');
+                const cost = await calculateShipping('Casablanca', city, 1, shippingMethod); // Default from Casablanca for now
+                setShippingCost(cost);
+            } catch (error) {
+                console.error('Failed to calculate shipping', error);
+            } finally {
+                setCalculatingShipping(false);
+            }
+        };
+
+        const timer = setTimeout(() => {
+            fetchShipping();
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [city, shippingMethod]);
+
+    const SHIPPING = shippingCost;
     const TOTAL = price + SHIPPING + PROTECTION_FEE;
 
     const validateAddress = () => {
@@ -235,7 +254,8 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                             />
                             <div>
                                 <strong>Amana (National Courier)</strong>
-                                <span>35 MAD • 2-5 business days</span>
+                                <strong>Amana (National Courier)</strong>
+                                <span>{calculatingShipping ? '...' : shippingCost} MAD • 2-5 business days</span>
                             </div>
                         </label>
                         <label className={styles.radioOption}>
@@ -247,10 +267,11 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                             />
                             <div>
                                 <strong>Yassir Express</strong>
-                                <span>25 MAD • Same-day (major cities)</span>
+                                <span>{calculatingShipping ? '...' : shippingCost} MAD • Same-day (major cities)</span>
                             </div>
                         </label>
                     </div>
+                    {calculatingShipping && <div style={{ fontSize: '0.8rem', color: '#666', marginTop: 8 }}>Calculating shipping rates...</div>}
                 </div>
 
                 {/* Shipping Address */}

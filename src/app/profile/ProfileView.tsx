@@ -264,19 +264,21 @@ export default function ProfileView({ user, stats }: ProfileViewProps) {
                                         >
                                             📦 Generate Label
                                         </button>
-                                        <form action={async () => {
-                                            await markAsShipped(sale.id);
-                                        }}>
-                                            <button
-                                                type="submit"
-                                                style={{
-                                                    padding: '8px 16px', background: 'var(--primary)', color: 'white',
-                                                    borderRadius: 8, fontWeight: 600, border: 'none', cursor: 'pointer'
-                                                }}
-                                            >
-                                                Mark Shipped
-                                            </button>
-                                        </form>
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    await markAsShipped(sale.id);
+                                                } catch (err) {
+                                                    alert('Failed to mark as shipped');
+                                                }
+                                            }}
+                                            style={{
+                                                padding: '8px 16px', background: 'var(--primary)', color: 'white',
+                                                borderRadius: 8, fontWeight: 600, border: 'none', cursor: 'pointer'
+                                            }}
+                                        >
+                                            Mark Shipped
+                                        </button>
                                     </div>
                                 )}
                                 {(sale.status === 'SHIPPED' || sale.status === 'IN_TRANSIT') && (

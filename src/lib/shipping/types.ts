@@ -48,6 +48,11 @@ export interface CarrierAdapter {
     trackShipment(trackingNumber: string): Promise<TrackingEvent[]>;
 
     /**
+     * Get a shipping quote
+     */
+    getQuote?(fromCity: string, toCity: string, weight: number): Promise<number>;
+
+    /**
      * Request a pickup (if supported)
      */
     requestPickup?(label: any): Promise<boolean>;

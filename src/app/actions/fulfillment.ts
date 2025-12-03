@@ -104,3 +104,38 @@ export async function markAsDelivered(transactionId: string) {
     revalidatePath('/purchases');
     revalidatePath('/sell');
 }
+
+export async function disputeTransaction(transactionId: string, reason: string) {
+    const session = await getSession();
+    if (!session) throw new Error('Unauthorized');
+
+    const transaction = await prisma.transaction.findUnique({
+        where: { id: transactionId }
+    });
+
+    if (!transaction) throw new Error('Transaction not found');
+    if (transaction.buyerId !== session) throw new Error('Unauthorized');
+
+    // Update transaction status to DISPUTE
+    await prisma.transaction.update({
+        where: { id: transactionId },
+        data: {
+            status: 'DISPUTE',
+            shipmentStatus: 'DISPUTE'
+        }
+    });
+
+    // Notify seller about the dispute
+    await prisma.message.create({
+        data: {
+            content: `⚠️ The buyer has reported an issue: "${reason}". The transaction is suspended. Support will review this shortly.`,
+            senderId: session,
+            receiverId: transaction.sellerId,
+            listingId: transaction.listingId,
+            type: 'TEXT'
+        }
+    });
+
+    revalidatePath('/purchases');
+    revalidatePath('/sell');
+}
