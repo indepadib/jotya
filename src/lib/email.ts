@@ -76,3 +76,57 @@ export async function sendMessageNotification(
         `
     });
 }
+
+export async function sendOfferNotification(
+    sellerEmail: string,
+    buyerName: string,
+    offerAmount: number,
+    itemTitle: string
+) {
+    return sendEmail({
+        to: sellerEmail,
+        subject: `New offer on your item: ${itemTitle}`,
+        html: `
+            <h1>You received a new offer!</h1>
+            <p>Hi,</p>
+            <p><strong>${buyerName}</strong> made an offer on your item:</p>
+            <div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin: 16px 0;">
+                <p style="margin: 0; font-weight: 600;">${itemTitle}</p>
+                <p style="margin: 8px 0 0 0; font-size: 24px; color: #0ea5e9; font-weight: 700;">${offerAmount} MAD</p>
+            </div>
+            <p>You can accept or decline this offer in your messages.</p>
+            <p><a href="https://jotya.com/inbox" style="display: inline-block; padding: 12px 24px; background: #0ea5e9; color: white; text-decoration: none; border-radius: 8px;">View Offer</a></p>
+            <br/>
+            <p>Thanks,<br/>The Jotya Team</p>
+        `
+    });
+}
+
+export async function sendOfferResponseNotification(
+    buyerEmail: string,
+    status: 'ACCEPTED' | 'REJECTED',
+    itemTitle: string
+) {
+    const isAccepted = status === 'ACCEPTED';
+    return sendEmail({
+        to: buyerEmail,
+        subject: `Your offer was ${isAccepted ? 'accepted' : 'declined'}: ${itemTitle}`,
+        html: `
+            <h1>Offer ${isAccepted ? 'Accepted' : 'Declined'}</h1>
+            <p>Hi,</p>
+            <p>Your offer on <strong>${itemTitle}</strong> has been <strong>${isAccepted ? 'accepted' : 'declined'}</strong>.</p>
+            ${isAccepted ? `
+                <p style="background: #dcfce7; padding: 16px; border-radius: 8px; color: #166534; margin: 16px 0;">
+                    🎉 Great news! The seller accepted your offer. You can now proceed to checkout.
+                </p>
+                <p><a href="https://jotya.com/inbox" style="display: inline-block; padding: 12px 24px; background: #22c55e; color: white; text-decoration: none; border-radius: 8px;">Go to Messages</a></p>
+            ` : `
+                <p style="background: #fef3c7; padding: 16px; border-radius: 8px; color: #92400e; margin: 16px 0;">
+                    The seller has declined your offer. You can try making a different offer or browse other items.
+                </p>
+            `}
+            <br/>
+            <p>Thanks,<br/>The Jotya Team</p>
+        `
+    });
+}
