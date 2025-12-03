@@ -25,16 +25,25 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
     useEffect(() => {
         const fetchMessages = async () => {
-            const data = await getMessages(id);
-            setMessages(data);
-            setLoading(false);
-            scrollToBottom();
+            try {
+                const data = await getMessages(id);
+                setMessages(data);
+                setLoading(false);
+                scrollToBottom();
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                setLoading(false);
+                // Set empty array so user can at least see the chat interface
+                setMessages([]);
+            }
         };
 
         fetchMessages();
 
-        // Mark messages as read when opening conversation
-        markConversationAsRead(id);
+        // Mark messages as read when opening conversation (non-blocking)
+        markConversationAsRead(id).catch(err =>
+            console.error('Error marking as read:', err)
+        );
 
         // Poll for new messages every 3 seconds
         const interval = setInterval(fetchMessages, 3000);
