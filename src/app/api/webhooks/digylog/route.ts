@@ -69,7 +69,6 @@ async function handleWebhook(req: NextRequest) {
             // 2. Determine Transaction Status
             let transactionStatus = 'IN_TRANSIT';
             if (internalStatus === ShipmentStatus.DELIVERED) transactionStatus = 'DELIVERED';
-            if (internalStatus === ShipmentStatus.PENDING_PICKUP) transactionStatus = 'PENDING_SHIPMENT';
 
             // 3. Update Transaction
             const transaction = await tx.transaction.update({
