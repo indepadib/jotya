@@ -2,6 +2,7 @@ import { CarrierAdapter } from './types';
 import { MockCarrierService } from './MockCarrierService';
 import { DigylogService } from './DigylogService';
 import { TawssilService } from './TawssilService';
+import { AmanaService } from './AmanaService';
 
 export enum CarrierType {
     AMANA = 'AMANA',
@@ -19,7 +20,7 @@ export class CarrierFactory {
             case CarrierType.TAWSSIL:
                 return new TawssilService();
             case CarrierType.AMANA:
-                return new MockCarrierService('AMANA');
+                return new AmanaService();
             case CarrierType.CHRONOPOST:
                 return new MockCarrierService('CHRONOPOST');
             default:

@@ -17,7 +17,7 @@ interface CheckoutFormProps {
     isOfferPrice?: boolean;
 }
 
-type ShippingMethod = 'DIGYLOG' | 'TAWSSIL' | 'HAND_DELIVERY';
+type ShippingMethod = 'AMANA' | 'DIGYLOG' | 'TAWSSIL' | 'HAND_DELIVERY';
 type PaymentMethod = 'STRIPE' | 'COD' | 'PAYPAL';
 
 export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: CheckoutFormProps) {
@@ -245,6 +245,18 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                 <div className={styles.section}>
                     <h2 className={styles.sectionTitle}>🚚 Shipping Method</h2>
                     <div className={styles.radioGroup}>
+                        <label className={styles.radioOption}>
+                            <input
+                                type="radio"
+                                value="AMANA"
+                                checked={shippingMethod === 'AMANA'}
+                                onChange={e => setShippingMethod(e.target.value as ShippingMethod)}
+                            />
+                            <div>
+                                <strong>Amana</strong>
+                                <span>{calculatingShipping ? '...' : shippingCost} MAD • 2-4 business days</span>
+                            </div>
+                        </label>
                         <label className={styles.radioOption}>
                             <input
                                 type="radio"
