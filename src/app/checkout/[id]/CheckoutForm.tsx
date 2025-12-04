@@ -17,7 +17,7 @@ interface CheckoutFormProps {
     isOfferPrice?: boolean;
 }
 
-type ShippingMethod = 'AMANA' | 'YASSIR' | 'HAND_DELIVERY';
+type ShippingMethod = 'DIGYLOG' | 'TAWSSIL' | 'HAND_DELIVERY';
 type PaymentMethod = 'STRIPE' | 'COD' | 'PAYPAL';
 
 export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: CheckoutFormProps) {
@@ -37,7 +37,7 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
     const [loadingAddresses, setLoadingAddresses] = useState(false);
 
     // Shipping and payment
-    const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('AMANA');
+    const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('DIGYLOG');
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('STRIPE');
 
     let images = [];
@@ -248,26 +248,25 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                         <label className={styles.radioOption}>
                             <input
                                 type="radio"
-                                value="AMANA"
-                                checked={shippingMethod === 'AMANA'}
+                                value="DIGYLOG"
+                                checked={shippingMethod === 'DIGYLOG'}
                                 onChange={e => setShippingMethod(e.target.value as ShippingMethod)}
                             />
                             <div>
-                                <strong>Amana (National Courier)</strong>
-                                <strong>Amana (National Courier)</strong>
+                                <strong>Digylog</strong>
                                 <span>{calculatingShipping ? '...' : shippingCost} MAD • 2-5 business days</span>
                             </div>
                         </label>
                         <label className={styles.radioOption}>
                             <input
                                 type="radio"
-                                value="YASSIR"
-                                checked={shippingMethod === 'YASSIR'}
+                                value="TAWSSIL"
+                                checked={shippingMethod === 'TAWSSIL'}
                                 onChange={e => setShippingMethod(e.target.value as ShippingMethod)}
                             />
                             <div>
-                                <strong>Yassir Express</strong>
-                                <span>{calculatingShipping ? '...' : shippingCost} MAD • Same-day (major cities)</span>
+                                <strong>Tawssil</strong>
+                                <span>{calculatingShipping ? '...' : shippingCost} MAD • 3-6 business days</span>
                             </div>
                         </label>
                     </div>
