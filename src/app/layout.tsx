@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import BottomNav from "@/components/Layout/BottomNav";
 import DesktopHeader from "@/components/Layout/DesktopHeader";
+import { ToastProvider } from "@/components/Toast/ToastProvider";
+import ToastContainer from "@/components/Toast/ToastContainer";
 
 // const FloatingAIChat = dynamic(() => import('@/components/AI/FloatingAIChat'), {
 //   ssr: false,
@@ -29,10 +31,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <DesktopHeader />
-        <main>{children}</main>
-        <BottomNav />
-        {/* <FloatingAIChat /> */}
+        <ToastProvider>
+          <DesktopHeader />
+          <main>{children}</main>
+          <BottomNav />
+          {/* <FloatingAIChat /> */}
+          <ToastContainer />
+        </ToastProvider>
       </body>
     </html>
   );

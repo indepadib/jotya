@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/useToast';
 
 interface CheckoutButtonProps {
     listingId: string;
@@ -12,11 +13,12 @@ interface CheckoutButtonProps {
 
 export default function CheckoutButton({ listingId, price, listingStatus, className, children }: CheckoutButtonProps) {
     const router = useRouter();
+    const toast = useToast();
 
     const handleCheckout = () => {
         // Check if item is sold before trying to checkout
         if (listingStatus === 'SOLD') {
-            alert('This item has been sold and is no longer available.');
+            toast.error('This item has been sold and is no longer available.');
             return;
         }
 

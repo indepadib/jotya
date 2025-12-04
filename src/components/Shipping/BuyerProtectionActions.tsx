@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { markAsDelivered, disputeTransaction } from '@/app/actions/fulfillment';
+import { useToast } from '@/hooks/useToast';
 
 interface BuyerProtectionActionsProps {
     transactionId: string;
@@ -10,36 +11,41 @@ interface BuyerProtectionActionsProps {
 
 export default function BuyerProtectionActions({ transactionId }: BuyerProtectionActionsProps) {
     const router = useRouter();
+    const toast = useToast();
     const [loading, setLoading] = useState(false);
-    const [showDisputeForm, setShowDisputeForm] = useState(false);
+    const [showDispute, setShowDispute] = useState(false);
     const [disputeReason, setDisputeReason] = useState('');
     const [orderCompleted, setOrderCompleted] = useState(false);
 
     const handleComplete = async () => {
-        if (!confirm('Are you sure everything is okay? This will release funds to the seller.')) return;
-
         setLoading(true);
+
         try {
             await markAsDelivered(transactionId);
             setOrderCompleted(true);
+            toast.success('Order completed! Funds released to seller.');
         } catch (e) {
             console.error(e);
-            alert('Error completing order');
+            toast.error('Error completing order. Please try again.');
         } finally {
             setLoading(false);
         }
     };
 
     const handleDispute = async () => {
-        if (!disputeReason) return alert('Please provide a reason');
+        if (!disputeReason.trim()) {
+            toast.warning('Please describe the issue before submitting.');
+            return;
+        }
 
         setLoading(true);
         try {
             await disputeTransaction(transactionId, disputeReason);
-            alert('Issue reported. The transaction has been suspended.');
+            toast.success('Issue reported. The transaction has been suspended.');
+            router.refresh();
         } catch (e) {
             console.error(e);
-            alert('Error reporting issue');
+            toast.error('Error reporting issue. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -52,7 +58,7 @@ export default function BuyerProtectionActions({ transactionId }: BuyerProtectio
                 Please confirm if you have received the item and it matches the description.
             </p>
 
-            {!showDisputeForm ? (
+            {!showDispute ? (
                 <div style={{ display: 'flex', gap: 12 }}>
                     <button
                         onClick={handleComplete}
@@ -72,7 +78,7 @@ export default function BuyerProtectionActions({ transactionId }: BuyerProtectio
                         ✅ Everything is OK
                     </button>
                     <button
-                        onClick={() => setShowDisputeForm(true)}
+                        onClick={() => setShowDispute(true)}
                         disabled={loading}
                         style={{
                             flex: 1,
@@ -122,7 +128,7 @@ export default function BuyerProtectionActions({ transactionId }: BuyerProtectio
                             Submit Issue
                         </button>
                         <button
-                            onClick={() => setShowDisputeForm(false)}
+                            onClick={() => setShowDispute(false)}
                             disabled={loading}
                             style={{
                                 padding: '10px 20px',
