@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import ItemPageClient from './ItemPageClient';
+import { Suspense } from 'react';
+import ItemDetailSkeleton from '@/components/Skeleton/ItemDetailSkeleton';
 
-export default async function ItemPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-
+async function ItemPageContent({ id }: { id: string }) {
     const listing = await prisma.listing.findUnique({
         where: { id },
         include: {
@@ -180,5 +180,15 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
             colorLookup={colorLookup}
             sizeLookup={sizeLookup}
         />
+    );
+}
+
+export default async function ItemPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+
+    return (
+        <Suspense fallback={<ItemDetailSkeleton />}>
+            <ItemPageContent id={id} />
+        </Suspense>
     );
 }

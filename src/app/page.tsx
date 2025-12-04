@@ -2,10 +2,27 @@ import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import LandingPage from './LandingPage';
 import { lookupListingsReferences } from '@/lib/listingHelpers';
+import { Suspense } from 'react';
+import ItemCardSkeleton from '@/components/Skeleton/ItemCardSkeleton';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Home() {
+function HomeSkeleton() {
+  return (
+    <div style={{
+      padding: '20px',
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+      gap: '16px'
+    }}>
+      {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+        <ItemCardSkeleton key={i} />
+      ))}
+    </div>
+  );
+}
+
+async function HomeContent() {
   // Get current user session
   const session = (await cookies()).get('session')?.value;
 
@@ -42,4 +59,12 @@ export default async function Home() {
   }
 
   return <LandingPage featuredListings={listings} />;
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<HomeSkeleton />}>
+      <HomeContent />
+    </Suspense>
+  );
 }
