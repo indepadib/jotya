@@ -497,7 +497,8 @@
 /* === STICKY ACTIONS === */
 .stickyActions {
     position: fixed;
-    bottom: 0;
+    bottom: 70px;
+    /* Position above BottomNav (which is at bottom: 0) */
     left: 0;
     right: 0;
     padding: 12px 16px;
