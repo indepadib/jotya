@@ -506,7 +506,8 @@
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
     display: flex;
     gap: 10px;
-    z-index: 100;
+    z-index: 150;
+    /* Above BottomNav which has z-index: 100 */
 }
 
 /* Simplified buttons */
