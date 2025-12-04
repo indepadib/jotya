@@ -1,4 +1,4 @@
-import { CarrierAdapter, ShipmentData, CarrierLabel } from './types';
+import { CarrierAdapter, ShipmentData, CarrierLabel, TrackingEvent } from './types';
 
 export class AmanaService implements CarrierAdapter {
     async generateLabel(shipment: ShipmentData): Promise<CarrierLabel> {
@@ -7,10 +7,22 @@ export class AmanaService implements CarrierAdapter {
 
         return {
             trackingNumber,
+            qrCode: '', // Will be generated when real API is integrated
             labelUrl: '', // Amana will provide label URL via API
-            carrier: 'AMANA',
-            status: 'PENDING_PICKUP'
+            carrier: 'AMANA'
         };
+    }
+
+    async trackShipment(trackingNumber: string): Promise<TrackingEvent[]> {
+        // Mock tracking - replace with actual Amana API
+        return [
+            {
+                status: 'IN_TRANSIT',
+                timestamp: new Date(),
+                location: 'Centre de tri',
+                notes: 'En cours de livraison'
+            }
+        ];
     }
 
     async getQuote(fromCity: string, toCity: string, weight: number): Promise<number> {
@@ -37,13 +49,5 @@ export class AmanaService implements CarrierAdapter {
 
         // Remote areas or smaller cities
         return 50;
-    }
-
-    async track(trackingNumber: string): Promise<any> {
-        // Mock tracking - replace with actual Amana API
-        return {
-            status: 'IN_TRANSIT',
-            events: []
-        };
     }
 }
