@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { toggleFavorite } from '@/app/actions/favorite';
 
@@ -80,17 +81,15 @@ export default function ProductCard({ id, title, price, image, brand, isFavorite
                 </svg>
             </button>
             <div style={{ position: 'relative', paddingTop: '133%' /* 4:3 Aspect Ratio */ }}>
-                <img
+                <Image
                     src={image}
                     alt={title}
+                    fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                     style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
                         objectFit: 'cover'
                     }}
+                    loading="lazy"
                 />
             </div>
             <div style={{ padding: '16px' }}>

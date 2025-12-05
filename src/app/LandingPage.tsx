@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Menu from '@/components/Layout/Menu';
 import FloatingAIChat from '@/components/AI/FloatingAIChat';
@@ -201,15 +202,18 @@ export default function LandingPage({ featuredListings }: LandingProps) {
                                                     e.currentTarget.style.boxShadow = 'none';
                                                 }}
                                             >
-                                                <img
-                                                    src={item.image}
-                                                    alt={item.title}
-                                                    style={{
-                                                        width: '100%',
-                                                        height: '200px',
-                                                        objectFit: 'cover'
-                                                    }}
-                                                />
+                                                <div style={{ position: 'relative', width: '100%', height: '200px' }}>
+                                                    <Image
+                                                        src={item.image}
+                                                        alt={item.title}
+                                                        fill
+                                                        sizes="(max-width: 768px) 50vw, 33vw"
+                                                        style={{
+                                                            objectFit: 'cover'
+                                                        }}
+                                                        loading="lazy"
+                                                    />
+                                                </div>
                                                 <div style={{ padding: '12px' }}>
                                                     <div style={{
                                                         fontSize: '0.85rem',
