@@ -96,6 +96,13 @@ export default async function AdminPage() {
                         </div>
                         <div className={styles.actionLabel}>Review Reports</div>
                     </Link>
+
+                    <Link href="/admin/analytics" className={styles.actionCard}>
+                        <div className={styles.actionIcon}>
+                            <Icon name="barChart" size={32} strokeWidth={1.5} />
+                        </div>
+                        <div className={styles.actionLabel}>Analytics Dashboard</div>
+                    </Link>
                 </div>
             </div>
 
