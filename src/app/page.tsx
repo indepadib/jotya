@@ -29,16 +29,26 @@ async function HomeContent() {
   let listings: any[] = [];
 
   try {
-    // Fetch more items to shuffle
+    // Optimized query - select only needed fields
     const rawListings = await prisma.listing.findMany({
       where: { status: 'AVAILABLE' },
       orderBy: { createdAt: 'desc' },
       take: 50,
-      include: {
-        brandRef: true,
-        colorRef: true,
-        sizeRef: true,
-        favoritedBy: session ? { where: { userId: session } } : false
+      select: {
+        id: true,
+        title: true,
+        price: true,
+        images: true,
+        verified: true,
+        brand: true,
+        color: true,
+        size: true,
+        brandRef: { select: { id: true, name: true } },
+        colorRef: { select: { id: true, name: true } },
+        sizeRef: { select: { id: true, value: true } },
+        _count: session ? {
+          select: { favoritedBy: { where: { userId: session } } }
+        } : false
       }
     });
 
@@ -48,7 +58,7 @@ async function HomeContent() {
     // Add isFavorited flag
     const withFavorites = shuffled.map(l => ({
       ...l,
-      isFavorited: l.favoritedBy?.length > 0
+      isFavorited: l._count?.favoritedBy > 0
     }));
 
     // Lookup brand/color/size values if they're IDs

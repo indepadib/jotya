@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { getUnreadMessageCount } from '@/app/actions/notifications';
 import NotificationBadge from '@/components/NotificationBadge';
@@ -41,7 +42,14 @@ export default function DesktopHeader() {
             <div className={styles.container}>
                 {/* Logo */}
                 <Link href="/" className={styles.logo}>
-                    Jotya
+                    <Image
+                        src="/images/jotya-logo.jpg"
+                        alt="Jotya"
+                        width={120}
+                        height={40}
+                        style={{ objectFit: 'contain' }}
+                        priority
+                    />
                 </Link>
 
                 {/* Navigation Links */}

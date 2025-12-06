@@ -5,15 +5,22 @@ import { Suspense } from 'react';
 import ItemDetailSkeleton from '@/components/Skeleton/ItemDetailSkeleton';
 
 async function ItemPageContent({ id }: { id: string }) {
-    const listing = await prisma.listing.findUnique({
-        where: { id },
-        include: {
-            seller: true,
-            brandRef: true,  // Get brand name from relation
-            colorRef: true,  // Get color name from relation
-            sizeRef: true    // Get size from relation
-        },
-    });
+    // Execute queries in parallel for better performance
+    const [listing, brandLookup, colorLookup, sizeLookup] = await Promise.all([
+        prisma.listing.findUnique({
+            where: { id },
+            include: {
+                seller: true,
+                brandRef: true,
+                colorRef: true,
+                sizeRef: true
+            },
+        }),
+        // These will be null if not needed, optimized later
+        Promise.resolve(null),
+        Promise.resolve(null),
+        Promise.resolve(null)
+    ]);
 
     if (!listing) {
         notFound();
@@ -25,58 +32,110 @@ async function ItemPageContent({ id }: { id: string }) {
         return value.length === 25 && /^c[a-z0-9]{24}$/i.test(value);
     };
 
-    // If brand/color/size fields contain IDs, look them up
-    let brandLookup = null;
-    let colorLookup = null;
-    let sizeLookup = null;
-
+    // Lookup additional brand/color/size if needed (in parallel)
+    const lookupPromises = [];
     if (listing.brand && isDatabaseId(listing.brand)) {
-        brandLookup = await prisma.brand.findUnique({ where: { id: listing.brand } });
+        lookupPromises.push(
+            prisma.brand.findUnique({ where: { id: listing.brand } }).then(b => ({ type: 'brand', data: b }))
+        );
     }
     if (listing.color && isDatabaseId(listing.color)) {
-        colorLookup = await prisma.color.findUnique({ where: { id: listing.color } });
+        lookupPromises.push(
+            prisma.color.findUnique({ where: { id: listing.color } }).then(c => ({ type: 'color', data: c }))
+        );
     }
     if (listing.size && isDatabaseId(listing.size)) {
-        sizeLookup = await prisma.size.findUnique({ where: { id: listing.size } });
+        lookupPromises.push(
+            prisma.size.findUnique({ where: { id: listing.size } }).then(s => ({ type: 'size', data: s }))
+        );
     }
 
-    // Fetch similar items (same brand, or fallback to recent items for upselling)
-    let similarItems = await prisma.listing.findMany({
-        where: {
-            AND: [
-                { id: { not: id } },
-                { status: 'AVAILABLE' },
-                { brand: listing.brand },
-            ],
-        },
-        take: 6,
-        orderBy: { createdAt: 'desc' },
-        select: {
-            id: true,
-            title: true,
-            price: true,
-            images: true,
-            brand: true,
-            size: true,
-            color: true,
-            condition: true,
-            verified: true,
-            sellerId: true,
-            status: true,
-            seller: {
-                select: {
-                    id: true,
-                    name: true,
-                    rating: true,
-                    createdAt: true,
-                    phoneVerified: true,
-                    emailVerified: true,
-                    idVerified: true,
-                    topRatedSeller: true,
+    const lookups = await Promise.all(lookupPromises);
+    let finalBrandLookup = null;
+    let finalColorLookup = null;
+    let finalSizeLookup = null;
+
+    lookups.forEach(lookup => {
+        if (lookup.type === 'brand') finalBrandLookup = lookup.data;
+        if (lookup.type === 'color') finalColorLookup = lookup.data;
+        if (lookup.type === 'size') finalSizeLookup = lookup.data;
+    });
+
+    // Fetch similar items and seller items in parallel
+    let [similarItems, sellerOtherItems] = await Promise.all([
+        prisma.listing.findMany({
+            where: {
+                AND: [
+                    { id: { not: id } },
+                    { status: 'AVAILABLE' },
+                    { brand: listing.brand },
+                ],
+            },
+            take: 6,
+            orderBy: { createdAt: 'desc' },
+            select: {
+                id: true,
+                title: true,
+                price: true,
+                images: true,
+                brand: true,
+                size: true,
+                color: true,
+                condition: true,
+                verified: true,
+                sellerId: true,
+                status: true,
+                seller: {
+                    select: {
+                        id: true,
+                        name: true,
+                        rating: true,
+                        createdAt: true,
+                        phoneVerified: true,
+                        emailVerified: true,
+                        idVerified: true,
+                        topRatedSeller: true,
+                    }
                 }
             }
-        }
-    });
+        }),
+        prisma.listing.findMany({
+            where: {
+                AND: [
+                    { sellerId: listing.sellerId },
+                    { id: { not: id } },
+                    { status: 'AVAILABLE' },
+                ],
+            },
+            take: 6,
+            orderBy: { createdAt: 'desc' },
+            select: {
+                id: true,
+                title: true,
+                price: true,
+                images: true,
+                brand: true,
+                size: true,
+                color: true,
+                condition: true,
+                verified: true,
+                sellerId: true,
+                status: true,
+                seller: {
+                    select: {
+                        id: true,
+                        name: true,
+                        rating: true,
+                        createdAt: true,
+                        phoneVerified: true,
+                        emailVerified: true,
+                        idVerified: true,
+                        topRatedSeller: true,
+                    }
+                }
+            }
+        })
+    ]);
 
     // If no items with same brand, fetch any recent available items for upselling
     if (similarItems.length === 0) {
@@ -117,44 +176,6 @@ async function ItemPageContent({ id }: { id: string }) {
         });
     }
 
-    // Fetch other items from the same seller
-    const sellerOtherItems = await prisma.listing.findMany({
-        where: {
-            AND: [
-                { sellerId: listing.sellerId },
-                { id: { not: id } },
-                { status: 'AVAILABLE' },
-            ],
-        },
-        take: 6,
-        orderBy: { createdAt: 'desc' },
-        select: {
-            id: true,
-            title: true,
-            price: true,
-            images: true,
-            brand: true,
-            size: true,
-            color: true,
-            condition: true,
-            verified: true,
-            sellerId: true,
-            status: true,
-            seller: {
-                select: {
-                    id: true,
-                    name: true,
-                    rating: true,
-                    createdAt: true,
-                    phoneVerified: true,
-                    emailVerified: true,
-                    idVerified: true,
-                    topRatedSeller: true,
-                }
-            }
-        }
-    });
-
     const images = JSON.parse(listing.images as string);
     const memberSince = new Date(listing.seller.createdAt).getFullYear();
 
@@ -176,9 +197,9 @@ async function ItemPageContent({ id }: { id: string }) {
             memberSince={memberSince}
             images={images}
             currentUserId={session}
-            brandLookup={brandLookup}
-            colorLookup={colorLookup}
-            sizeLookup={sizeLookup}
+            brandLookup={finalBrandLookup}
+            colorLookup={finalColorLookup}
+            sizeLookup={finalSizeLookup}
         />
     );
 }
