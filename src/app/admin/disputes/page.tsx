@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/useToast';
-import styles from './admin.module.css';
+import styles from '../admin.module.css';
 
 export default function AdminDisputesPage() {
     const [disputes, setDisputes] = useState<any[]>([]);
