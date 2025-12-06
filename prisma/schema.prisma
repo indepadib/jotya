@@ -40,6 +40,7 @@ model User {
   reportsSubmitted   Report[]            @relation("Reporter")
   reportsReceived    Report[]            @relation("Reported")
   verificationTokens VerificationToken[]
+  notifications      Notification[]
 }
 
 model Wallet {
@@ -290,6 +291,34 @@ model BlockedUser {
   blocked   User     @relation("Blocked", fields: [blockedId], references: [id])
 
   @@unique([blockerId, blockedId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  link      String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  
+  user User @relation(fields: [userId], references: [id])
+  
+  @@index([userId, read])
+  @@index([userId, createdAt])
+}
+
+enum NotificationType {
+  NEW_MESSAGE
+  OFFER_RECEIVED
+  OFFER_ACCEPTED
+  OFFER_REJECTED
+  ITEM_SOLD
+  PAYMENT_RECEIVED
+  PAYOUT_PROCESSED
+  ITEM_SHIPPED
+  ITEM_DELIVERED
 }
 
 model VerificationToken {

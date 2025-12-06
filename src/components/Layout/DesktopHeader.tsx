@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { getUnreadMessageCount } from '@/app/actions/notifications';
 import NotificationBadge from '@/components/NotificationBadge';
+import NotificationCenter from '@/components/Notifications/NotificationCenter';
 import styles from './DesktopHeader.module.css';
 
 export default function DesktopHeader() {
@@ -64,6 +65,9 @@ export default function DesktopHeader() {
                         + Sell
                     </Link>
                 </nav>
+
+                {/* Notifications */}
+                <NotificationCenter />
 
                 {/* User Menu */}
                 <div className={styles.userMenu} ref={dropdownRef}>

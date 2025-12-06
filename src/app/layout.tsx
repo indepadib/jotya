@@ -6,6 +6,7 @@ import DesktopHeader from "@/components/Layout/DesktopHeader";
 import { ToastProvider } from "@/components/Toast/ToastProvider";
 import ToastContainer from "@/components/Toast/ToastContainer";
 import ErrorBoundary from "@/components/ErrorBoundary/ErrorBoundary";
+import { NotificationProvider } from "@/components/Notifications/NotificationProvider";
 
 // const FloatingAIChat = dynamic(() => import('@/components/AI/FloatingAIChat'), {
 //   ssr: false,
@@ -68,13 +69,15 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ToastProvider>
-          <ErrorBoundary>
-            <DesktopHeader />
-            <main>{children}</main>
-            <BottomNav />
-            {/* <FloatingAIChat /> */}
-            <ToastContainer />
-          </ErrorBoundary>
+          <NotificationProvider>
+            <ErrorBoundary>
+              <DesktopHeader />
+              <main>{children}</main>
+              <BottomNav />
+              {/* <FloatingAIChat /> */}
+              <ToastContainer />
+            </ErrorBoundary>
+          </NotificationProvider>
         </ToastProvider>
       </body>
     </html>
