@@ -378,3 +378,123 @@
 .viewItemLink a:hover {
     text-decoration: underline;
 }
+
+/* Counter Offer Button */
+.counterBtn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    background: #f59e0b;
+    color: white;
+}
+
+.counterBtn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* Counter Offer Modal */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modalContent {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modalContent h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.3rem;
+    color: var(--text-primary);
+}
+
+.modalContent p {
+    margin: 0 0 20px 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.inputGroup {
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.priceInput {
+    width: 100%;
+    padding: 12px 60px 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.priceInput:focus {
+    border-color: var(--primary);
+}
+
+.currency {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.modalActions {
+    display: flex;
+    gap: 12px;
+}
+
+.cancelBtn,
+.submitBtn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.cancelBtn {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.cancelBtn:hover {
+    background: #e5e7eb;
+}
+
+.submitBtn {
+    background: var(--primary);
+    color: white;
+}
+
+.submitBtn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}

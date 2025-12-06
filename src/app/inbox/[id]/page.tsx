@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, use } from 'react';
 import { getMessages, sendMessage } from '@/app/actions/chat';
-import { respondToOffer } from '@/app/actions/offer';
+import { respondToOffer, counterOffer } from '@/app/actions/offer';
 import { markConversationAsRead } from '@/app/actions/notifications';
 
 import styles from './chat.module.css';
@@ -15,6 +15,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     const [loading, setLoading] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [sending, setSending] = useState(false);
+    const [counterOfferModal, setCounterOfferModal] = useState<{ show: boolean; messageId: string } | null>(null);
+    const [counterAmount, setCounterAmount] = useState('');
 
     // In a real app, get current user from session
     // For now, we'll rely on the server action to handle the sender ID based on session
@@ -76,6 +78,25 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     const handleOfferResponse = async (messageId: string, status: 'ACCEPTED' | 'REJECTED') => {
         await respondToOffer(messageId, status);
         // Refresh messages to show updated status
+        const data = await getMessages(id);
+        setMessages(data);
+    };
+
+    const handleCounterOffer = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!counterOfferModal || !counterAmount) return;
+
+        const amount = parseFloat(counterAmount);
+        if (isNaN(amount) || amount <= 0) {
+            alert('Please enter a valid amount');
+            return;
+        }
+
+        await counterOffer(counterOfferModal.messageId, amount);
+        setCounterOfferModal(null);
+        setCounterAmount('');
+
+        // Refresh messages
         const data = await getMessages(id);
         setMessages(data);
     };
@@ -175,6 +196,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                                                         Accept
                                                     </button>
                                                     <button
+                                                        onClick={() => setCounterOfferModal({ show: true, messageId: msg.id })}
+                                                        className={styles.counterBtn}
+                                                    >
+                                                        Counter Offer
+                                                    </button>
+                                                    <button
                                                         onClick={() => handleOfferResponse(msg.id, 'REJECTED')}
                                                         className={styles.rejectBtn}
                                                     >
@@ -244,6 +271,39 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                     </svg>
                 </button>
             </form>
+
+            {/* Counter Offer Modal */}
+            {counterOfferModal && (
+                <div className={styles.modalOverlay} onClick={() => setCounterOfferModal(null)}>
+                    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+                        <h3>Counter Offer</h3>
+                        <p>Propose a different price to the buyer:</p>
+                        <form onSubmit={handleCounterOffer}>
+                            <div className={styles.inputGroup}>
+                                <input
+                                    type="number"
+                                    value={counterAmount}
+                                    onChange={(e) => setCounterAmount(e.target.value)}
+                                    placeholder="Enter amount"
+                                    className={styles.priceInput}
+                                    autoFocus
+                                    step="0.01"
+                                    min="1"
+                                />
+                                <span className={styles.currency}>MAD</span>
+                            </div>
+                            <div className={styles.modalActions}>
+                                <button type="button" onClick={() => setCounterOfferModal(null)} className={styles.cancelBtn}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className={styles.submitBtn}>
+                                    Send Counter Offer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -114,3 +114,66 @@ export async function respondToOffer(messageId: string, status: 'ACCEPTED' | 'RE
     revalidatePath('/inbox');
     return { success: true };
 }
+
+export async function counterOffer(messageId: string, counterAmount: number) {
+    const session = await getSession();
+    if (!session) return { error: 'Unauthorized' };
+
+    const originalMessage = await prisma.message.findUnique({
+        where: { id: messageId },
+        include: { listing: true }
+    });
+
+    if (!originalMessage) return { error: 'Message not found' };
+
+    // Only the receiver of the offer (the seller) can counter
+    if (originalMessage.receiverId !== session) return { error: 'Unauthorized' };
+
+    // Reject the original offer
+    await prisma.message.update({
+        where: { id: messageId },
+        data: { offerStatus: 'REJECTED' }
+    });
+
+    // Create counter-offer message (from seller to buyer)
+    await prisma.message.create({
+        data: {
+            content: `Counter-Offer: ${counterAmount} MAD`,
+            senderId: session, // seller
+            receiverId: originalMessage.senderId, // original buyer
+            listingId: originalMessage.listingId,
+            type: 'OFFER',
+            offerAmount: counterAmount,
+            offerStatus: 'PENDING'
+        }
+    });
+
+    // Notify buyer
+    const buyer = await prisma.user.findUnique({
+        where: { id: originalMessage.senderId },
+        select: { email: true }
+    });
+
+    if (buyer?.email && originalMessage.listing) {
+        await sendOfferNotification(
+            buyer.email,
+            'Seller',
+            counterAmount,
+            originalMessage.listing.title
+        );
+    }
+
+    // System message
+    await prisma.message.create({
+        data: {
+            content: `Seller sent a counter-offer of ${counterAmount} MAD`,
+            senderId: session,
+            receiverId: originalMessage.senderId,
+            listingId: originalMessage.listingId,
+            type: 'TEXT'
+        }
+    });
+
+    revalidatePath('/inbox');
+    return { success: true };
+}
