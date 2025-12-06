@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { sendOfferNotification, sendOfferResponseNotification } from '@/lib/email';
+import { createNotification } from '@/lib/notifications';
 
 export async function createOffer(listingId: string, amount: number) {
     const session = await getSession();
@@ -43,20 +44,32 @@ export async function createOffer(listingId: string, amount: number) {
             }
         });
 
-        // Send email notification to seller
+        // Get buyer and seller info
         const [buyer, seller] = await Promise.all([
             prisma.user.findUnique({ where: { id: session }, select: { name: true } }),
             prisma.user.findUnique({ where: { id: listing.sellerId }, select: { email: true } })
         ]);
 
-        if (buyer && seller?.email) {
+        const buyerName = buyer?.name || 'Someone';
+
+        // Send email notification to seller
+        if (seller?.email) {
             await sendOfferNotification(
                 seller.email,
-                buyer.name || 'Someone',
+                buyerName,
                 amount,
                 listing.title
             );
         }
+
+        // Create in-app notification
+        await createNotification(
+            listing.sellerId,
+            'OFFER_RECEIVED',
+            'New Offer',
+            `${buyerName} offered ${amount} MAD for ${listing.title}`,
+            `/inbox/${session}`
+        );
 
         revalidatePath(`/items/${listingId}`);
     } catch (error) {
@@ -99,6 +112,17 @@ export async function respondToOffer(messageId: string, status: 'ACCEPTED' | 'RE
             message.listing.title
         );
     }
+
+    // Create in-app notification
+    await createNotification(
+        message.senderId,
+        status === 'ACCEPTED' ? 'OFFER_ACCEPTED' : 'OFFER_REJECTED',
+        status === 'ACCEPTED' ? 'Offer Accepted!' : 'Offer Declined',
+        status === 'ACCEPTED'
+            ? `Your offer of ${message.offerAmount} MAD was accepted!`
+            : `Your offer of ${message.offerAmount} MAD was declined`,
+        `/inbox/${session}`
+    );
 
     // System message to notify
     await prisma.message.create({
