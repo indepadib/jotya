@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
+import { createNotification } from '@/lib/notifications';
 
 // GET - Fetch user notifications
 export async function GET() {
@@ -63,28 +64,5 @@ export async function PUT(request: NextRequest) {
     } catch (error) {
         console.error('Error updating notifications:', error);
         return NextResponse.json({ error: 'Failed to update notifications' }, { status: 500 });
-    }
-}
-
-// Helper function to create notification (for use in other actions)
-export async function createNotification(
-    userId: string,
-    type: string,
-    title: string,
-    message: string,
-    link?: string
-) {
-    try {
-        await prisma.notification.create({
-            data: {
-                userId,
-                type: type as any,
-                title,
-                message,
-                link
-            }
-        });
-    } catch (error) {
-        console.error('Error creating notification:', error);
     }
 }

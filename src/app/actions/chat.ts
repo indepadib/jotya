@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { sendMessageNotification } from '@/lib/email';
+import { createNotification } from '@/lib/notifications';
 
 export async function startConversation(formData: FormData) {
     const session = (await cookies()).get('session')?.value;
@@ -54,19 +55,31 @@ export async function sendMessage(receiverId: string, content: string, listingId
         },
     });
 
-    // Send email notification
+    // Get sender and receiver info
     const [sender, receiver] = await Promise.all([
         prisma.user.findUnique({ where: { id: session }, select: { name: true } }),
         prisma.user.findUnique({ where: { id: receiverId }, select: { email: true } })
     ]);
 
-    if (sender && receiver?.email) {
+    const senderName = sender?.name || 'Someone';
+
+    // Send email notification
+    if (receiver?.email) {
         await sendMessageNotification(
             receiver.email,
-            sender.name || 'Someone',
+            senderName,
             content.substring(0, 100)
         );
     }
+
+    // Create in-app notification
+    await createNotification(
+        receiverId,
+        'NEW_MESSAGE',
+        'New Message',
+        `${senderName} sent you a message`,
+        `/inbox/${session}`
+    );
 
     return { success: true };
 }
