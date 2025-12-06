@@ -1,108 +1,165 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useToast } from '@/hooks/useToast';
+import styles from './admin.module.css';
 
 export default function AdminDisputesPage() {
     const [disputes, setDisputes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [processingId, setProcessingId] = useState<string | null>(null);
+    const toast = useToast();
 
     useEffect(() => {
         fetchDisputes();
     }, []);
 
     const fetchDisputes = async () => {
-        const res = await fetch('/api/admin/disputes');
-        if (res.ok) {
-            setDisputes(await res.json());
+        try {
+            const res = await fetch('/api/admin/disputes');
+            if (res.ok) {
+                setDisputes(await res.json());
+            } else {
+                toast.error('Failed to load disputes');
+            }
+        } catch (error) {
+            toast.error('Error loading disputes');
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const handleResolve = async (id: string, resolution: 'REFUND_BUYER' | 'RELEASE_SELLER') => {
-        const msg = resolution === 'REFUND_BUYER' ? 'Refund the Buyer?' : 'Release funds to Seller?';
+        const msg = resolution === 'REFUND_BUYER' ?
+            'Are you sure you want to refund the buyer? This cannot be undone.' :
+            'Are you sure you want to release funds to the seller? This cannot be undone.';
+
         if (!confirm(msg)) return;
 
-        const res = await fetch('/api/admin/disputes', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, resolution })
-        });
+        setProcessingId(id);
+        try {
+            const res = await fetch('/api/admin/disputes', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, resolution })
+            });
 
-        if (res.ok) {
-            fetchDisputes();
-        } else {
-            alert('Error resolving dispute');
+            if (res.ok) {
+                toast.success(resolution === 'REFUND_BUYER' ? 'Buyer refunded successfully' : 'Funds released to seller');
+                fetchDisputes();
+            } else {
+                toast.error('Failed to resolve dispute');
+            }
+        } catch (error) {
+            toast.error('Error resolving dispute');
+        } finally {
+            setProcessingId(null);
         }
     };
 
-    if (loading) return <div style={{ padding: 40 }}>Loading...</div>;
+    if (loading) {
+        return (
+            <div className={styles.container}>
+                <div className={styles.header}>
+                    <h1>Dispute Resolution</h1>
+                </div>
+                <div className={styles.loadingCard}>
+                    <div className="skeleton rectangular" style={{ width: '100%', height: '60px', marginBottom: '20px' }} />
+                    <div className="skeleton rectangular" style={{ width: '100%', height: '60px', marginBottom: '20px' }} />
+                    <div className="skeleton rectangular" style={{ width: '100%', height: '60px' }} />
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div style={{ padding: 40 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 30 }}>Dispute Resolution</h1>
-
-            <div style={{ background: 'white', borderRadius: 12, border: '1px solid #e2e8f0', overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                        <tr style={{ background: '#f8fafc', textAlign: 'left' }}>
-                            <th style={{ padding: 16 }}>Transaction</th>
-                            <th style={{ padding: 16 }}>Reason</th>
-                            <th style={{ padding: 16 }}>Description</th>
-                            <th style={{ padding: 16 }}>Status</th>
-                            <th style={{ padding: 16 }}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {disputes.map(dispute => (
-                            <tr key={dispute.id} style={{ borderTop: '1px solid #e2e8f0' }}>
-                                <td style={{ padding: 16 }}>
-                                    <div style={{ fontWeight: 600 }}>{dispute.transaction.listing.title}</div>
-                                    <div style={{ fontSize: 12, color: '#64748b' }}>
-                                        Buyer: {dispute.transaction.buyer.name}<br />
-                                        Seller: {dispute.transaction.seller.name}
-                                    </div>
-                                    <div style={{ fontSize: 12, fontWeight: 700, marginTop: 4 }}>
-                                        {dispute.transaction.amount} MAD
-                                    </div>
-                                </td>
-                                <td style={{ padding: 16, fontWeight: 600 }}>{dispute.reason}</td>
-                                <td style={{ padding: 16, fontSize: 13, maxWidth: 300 }}>{dispute.description}</td>
-                                <td style={{ padding: 16 }}>
-                                    <span style={{
-                                        padding: '4px 10px',
-                                        borderRadius: 20,
-                                        fontSize: 12,
-                                        fontWeight: 600,
-                                        background: dispute.status === 'OPEN' ? '#fef2f2' : '#f0fdf4',
-                                        color: dispute.status === 'OPEN' ? '#b91c1c' : '#15803d'
-                                    }}>
-                                        {dispute.status}
-                                    </span>
-                                </td>
-                                <td style={{ padding: 16 }}>
-                                    {dispute.status === 'OPEN' && (
-                                        <div style={{ display: 'flex', gap: 8, flexDirection: 'column' }}>
-                                            <button
-                                                onClick={() => handleResolve(dispute.id, 'REFUND_BUYER')}
-                                                style={{ padding: '6px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer' }}
-                                            >
-                                                Refund Buyer
-                                            </button>
-                                            <button
-                                                onClick={() => handleResolve(dispute.id, 'RELEASE_SELLER')}
-                                                style={{ padding: '6px 12px', background: '#22c55e', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer' }}
-                                            >
-                                                Release to Seller
-                                            </button>
-                                        </div>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-                {disputes.length === 0 && <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>No disputes found.</div>}
+        <div className={styles.container}>
+            <div className={styles.header}>
+                <h1>Dispute Resolution</h1>
+                <div className={styles.stats}>
+                    <div className={styles.statBadge}>
+                        <span className={styles.statValue}>{disputes.filter(d => d.status === 'OPEN').length}</span>
+                        <span className={styles.statLabel}>Open</span>
+                    </div>
+                    <div className={styles.statBadge}>
+                        <span className={styles.statValue}>{disputes.filter(d => d.status === 'RESOLVED').length}</span>
+                        <span className={styles.statLabel}>Resolved</span>
+                    </div>
+                </div>
             </div>
+
+            {disputes.length === 0 ? (
+                <div className={styles.emptyState}>
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h3>No disputes found</h3>
+                    <p>All clear! There are no active disputes to resolve.</p>
+                </div>
+            ) : (
+                <div className={styles.tableCard}>
+                    <div className={styles.tableWrapper}>
+                        <table className={styles.table}>
+                            <thead>
+                                <tr>
+                                    <th>Transaction</th>
+                                    <th>Reason</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {disputes.map(dispute => (
+                                    <tr key={dispute.id}>
+                                        <td>
+                                            <div className={styles.transactionInfo}>
+                                                <div className={styles.itemTitle}>{dispute.transaction.listing.title}</div>
+                                                <div className={styles.parties}>
+                                                    <span>👤 Buyer: {dispute.transaction.buyer.name}</span>
+                                                    <span>🏪 Seller: {dispute.transaction.seller.name}</span>
+                                                </div>
+                                                <div className={styles.amount}>{dispute.transaction.amount} MAD</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span className={styles.reason}>{dispute.reason}</span>
+                                        </td>
+                                        <td>
+                                            <div className={styles.description}>{dispute.description}</div>
+                                        </td>
+                                        <td>
+                                            <span className={`${styles.badge} ${styles[dispute.status.toLowerCase()]}`}>
+                                                {dispute.status}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {dispute.status === 'OPEN' && (
+                                                <div className={styles.actions}>
+                                                    <button
+                                                        onClick={() => handleResolve(dispute.id, 'REFUND_BUYER')}
+                                                        disabled={processingId === dispute.id}
+                                                        className={`${styles.btn} ${styles.btnDanger}`}
+                                                    >
+                                                        {processingId === dispute.id ? '...' : '💰 Refund Buyer'}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleResolve(dispute.id, 'RELEASE_SELLER')}
+                                                        disabled={processingId === dispute.id}
+                                                        className={`${styles.btn} ${styles.btnSuccess}`}
+                                                    >
+                                                        {processingId === dispute.id ? '...' : '✓ Release to Seller'}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
