@@ -1,0 +1,118 @@
+/* Seller Analytics Page Styles */
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    min-height: 100vh;
+    background: var(--background);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.backBtn {
+    padding: 10px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text-primary);
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.backBtn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Metrics Grid */
+.metricsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+/* Charts Grid */
+.chartsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.chartItem {
+    min-height: 300px;
+}
+
+.fullWidthChart {
+    grid-column: 1 / -1;
+}
+
+/* Tips Card */
+.tipsCard {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 32px;
+}
+
+.tipsCard h3 {
+    font-size: 1.3rem;
+    margin: 0 0 20px 0;
+}
+
+.tipsCard ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+}
+
+.tipsCard li {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    backdrop-filter: blur(10px);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .container {
+        padding: 20px 16px;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .metricsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .chartsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .tipsCard ul {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,163 @@
+/* Analytics Components Styles */
+
+/* Metric Cards */
+.metricCard {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.metricCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.metricIcon {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.metricContent {
+    flex: 1;
+}
+
+.metricTitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.metricValue {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.metricChange {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.metricChange.up {
+    color: #10b981;
+}
+
+.metricChange.down {
+    color: #ef4444;
+}
+
+.metricChange.neutral {
+    color: var(--text-secondary);
+}
+
+/* Charts */
+.chartContainer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.chartTitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 20px 0;
+    color: var(--text-primary);
+}
+
+/* Bar Chart */
+.barChart {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.barItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.barLabel {
+    min-width: 120px;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.barWrapper {
+    flex: 1;
+    background: #f3f4f6;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 32px;
+}
+
+.bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--primary-dark, #1e40af));
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 12px;
+    min-width: 50px;
+    transition: width 0.5s ease;
+}
+
+.barValue {
+    color: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+/* Line Chart */
+.lineChart {
+    position: relative;
+}
+
+.lineChart svg {
+    width: 100%;
+    height: 200px;
+    display: block;
+}
+
+.lineChartLabels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+}
+
+.lineChartLabel {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .metricCard {
+        padding: 16px;
+    }
+
+    .metricValue {
+        font-size: 1.5rem;
+    }
+
+    .barLabel {
+        min-width: 80px;
+        font-size: 0.8rem;
+    }
+
+    .chartContainer {
+        padding: 16px;
+    }
+}
