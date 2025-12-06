@@ -34,6 +34,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const fetchNotifications = async () => {
         try {
             const res = await fetch('/api/notifications');
+
+            // If unauthorized (not logged in), just silently return
+            if (res.status === 401) {
+                return;
+            }
+
             if (res.ok) {
                 const data = await res.json();
                 const newNotifications = data.notifications || [];
@@ -58,7 +64,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                 setUnreadCount(data.unreadCount || 0);
             }
         } catch (error) {
-            console.error('Error fetching notifications:', error);
+            // Silently fail - user might not be logged in
+            console.debug('Could not fetch notifications:', error);
         }
     };
 
