@@ -13,15 +13,50 @@ import ErrorBoundary from "@/components/ErrorBoundary/ErrorBoundary";
 // });
 
 export const metadata: Metadata = {
-  title: "Jotya | Premium Second-Hand Marketplace",
-  description: "Buy and sell authenticated luxury fashion in Morocco. AI-verified listings, secure payments, and a trusted community.",
+  title: "Jotya | Premium Second-Hand Marketplace in Morocco",
+  description: "Buy and sell authenticated luxury fashion in Morocco. AI-verified listings, secure payments, and a trusted community. Shop premium brands at great prices.",
+  keywords: ['jotya', 'morocco', 'second-hand', 'marketplace', 'luxury fashion', 'authenticated', 'pre-owned', 'designer brands', 'maroc', 'occasion'],
+  authors: [{ name: 'Jotya' }],
+  creator: 'Jotya',
+  publisher: 'Jotya',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL('https://jotya.ma'),
   openGraph: {
     title: "Jotya | Buy & Sell Authenticated Fashion",
-    description: "The safest way to buy second-hand luxury items in Morocco.",
+    description: "The safest way to buy second-hand luxury items in Morocco. AI-verified, secure payments, trusted community.",
     type: "website",
-    locale: "en_US", // or fr_MA
+    locale: "en_US",
     siteName: "Jotya",
-  }
+    images: [
+      {
+        url: '/images/jotya-logo.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Jotya - Premium Second-Hand Marketplace',
+      }
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Jotya | Premium Second-Hand Marketplace",
+    description: "Buy and sell authenticated luxury fashion in Morocco",
+    images: ['/images/jotya-logo.jpg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export default function RootLayout({

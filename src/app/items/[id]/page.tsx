@@ -3,6 +3,68 @@ import { notFound } from 'next/navigation';
 import ItemPageClient from './ItemPageClient';
 import { Suspense } from 'react';
 import ItemDetailSkeleton from '@/components/Skeleton/ItemDetailSkeleton';
+import type { Metadata } from 'next';
+
+// Generate dynamic metadata for SEO
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+    const { id } = await params;
+
+    try {
+        const listing = await prisma.listing.findUnique({
+            where: { id },
+            select: {
+                title: true,
+                description: true,
+                price: true,
+                images: true,
+                brand: true,
+                condition: true,
+                verified: true,
+            }
+        });
+
+        if (!listing) {
+            return {
+                title: 'Item Not Found | Jotya',
+                description: 'This item is no longer available'
+            };
+        }
+
+        const images = JSON.parse(listing.images as string);
+        const firstImage = images[0] || '/images/jotya-logo.jpg';
+
+        return {
+            title: `${listing.title} - ${listing.price} MAD | Jotya`,
+            description: listing.description || `Buy ${listing.title} for ${listing.price} MAD on Jotya. ${listing.verified ? 'AI-verified authentic.' : ''} Quality: ${listing.condition}.`,
+            keywords: ['jotya', 'morocco', 'second-hand', 'luxury', 'fashion', listing.brand || '', listing.title],
+            openGraph: {
+                title: listing.title,
+                description: listing.description || `${listing.title} - ${listing.price} MAD`,
+                images: [
+                    {
+                        url: firstImage,
+                        width: 800,
+                        height: 600,
+                        alt: listing.title,
+                    }
+                ],
+                type: 'website',
+                siteName: 'Jotya',
+            },
+            twitter: {
+                card: 'summary_large_image',
+                title: listing.title,
+                description: listing.description || `${listing.title} - ${listing.price} MAD`,
+                images: [firstImage],
+            },
+        };
+    } catch (error) {
+        return {
+            title: 'Item | Jotya',
+            description: 'Premium second-hand marketplace in Morocco'
+        };
+    }
+}
 
 async function ItemPageContent({ id }: { id: string }) {
     // Execute queries in parallel for better performance

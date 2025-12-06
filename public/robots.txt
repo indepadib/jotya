@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and private routes
+Disallow: /api/
+Disallow: /admin/
+Disallow: /settings/
+Disallow: /wallet/
+
+# Sitemap
+Sitemap: https://jotya.ma/sitemap.xml
