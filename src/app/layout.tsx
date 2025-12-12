@@ -5,7 +5,7 @@ import BottomNav from "@/components/Layout/BottomNav";
 import DesktopHeader from "@/components/Layout/DesktopHeader";
 import { ToastProvider } from "@/components/Toast/ToastProvider";
 import ToastContainer from "@/components/Toast/ToastContainer";
-import ErrorBoundary from "@/components/ErrorBoundary/ErrorBoundary";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { NotificationProvider } from "@/components/Notifications/NotificationProvider";
 
 // const FloatingAIChat = dynamic(() => import('@/components/AI/FloatingAIChat'), {

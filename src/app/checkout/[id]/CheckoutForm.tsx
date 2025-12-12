@@ -18,7 +18,7 @@ interface CheckoutFormProps {
 }
 
 type ShippingMethod = 'AMANA' | 'DIGYLOG' | 'TAWSSIL' | 'HAND_DELIVERY';
-type PaymentMethod = 'STRIPE' | 'COD' | 'PAYPAL';
+type PaymentMethod = 'STRIPE' | 'COD'; // Removed PayPal to simplify escrow/payout system
 
 export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: CheckoutFormProps) {
     const [loading, setLoading] = useState(false);
@@ -167,37 +167,6 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                 if (!res.ok) throw new Error(data.error || 'Failed to create order');
 
                 router.push('/purchases?success=true');
-            } else if (paymentMethod === 'PAYPAL') {
-                // Store checkout data in sessionStorage before redirect
-                sessionStorage.setItem('paypalCheckoutData', JSON.stringify({
-                    listingId: listing.id,
-                    shippingMethod,
-                    shippingAddress,
-                    shippingCost: SHIPPING,
-                    amount: price
-                }));
-
-                // Create PayPal order
-                const res = await fetch('/api/paypal/create-order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        listingId: listing.id,
-                        shippingMethod,
-                        shippingAddress,
-                        shippingCost: SHIPPING
-                    })
-                });
-
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Failed to create PayPal order');
-
-                if (!data.approvalUrl) {
-                    throw new Error('PayPal approval URL not received');
-                }
-
-                // Redirect to PayPal (works on all devices including mobile)
-                window.location.href = data.approvalUrl;
             } else {
                 // Stripe payment
                 const res = await fetch('/api/checkout', {
@@ -373,18 +342,6 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                                 <span>Pay when you receive the item</span>
                             </div>
                         </label>
-                        <label className={styles.radioOption}>
-                            <input
-                                type="radio"
-                                value="PAYPAL"
-                                checked={paymentMethod === 'PAYPAL'}
-                                onChange={e => setPaymentMethod(e.target.value as PaymentMethod)}
-                            />
-                            <div>
-                                <strong>PayPal</strong>
-                                <span>Pay securely with PayPal account</span>
-                            </div>
-                        </label>
                     </div>
                 </div>
 
@@ -423,9 +380,7 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                     {loading ? (
                         paymentMethod === 'COD'
                             ? 'Creating Order...'
-                            : paymentMethod === 'PAYPAL'
-                                ? 'Opening PayPal...'
-                                : 'Redirecting to Stripe...'
+                            : 'Redirecting to Stripe...'
                     ) : (
                         paymentMethod === 'COD'
                             ? `Place Order (${TOTAL.toFixed(2)} MAD)`
@@ -438,11 +393,6 @@ export default function CheckoutForm({ listing, effectivePrice, isOfferPrice }: 
                 {paymentMethod === 'STRIPE' && (
                     <p className={styles.secureText}>
                         🔒 You will be redirected to Stripe for secure payment
-                    </p>
-                )}
-                {paymentMethod === 'PAYPAL' && (
-                    <p className={styles.secureText}>
-                        🔒 You will be redirected to PayPal for secure payment
                     </p>
                 )}
             </form>
