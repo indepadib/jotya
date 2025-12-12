@@ -24,7 +24,11 @@ export default function ExpandableDescription({ description }: ExpandableDescrip
                     className={styles.readMoreBtn}
                     onClick={() => setIsExpanded(!isExpanded)}
                 >
-                    {isExpanded ? 'Show Less ▲' : 'Read More ▼'}
+                    {isExpanded ? (
+                        <>Show Less <span style={{ fontSize: '0.75rem' }}>▲</span></>
+                    ) : (
+                        <>Read More <span style={{ fontSize: '0.75rem' }}>▼</span></>
+                    )}
                 </button>
             )}
         </div>
