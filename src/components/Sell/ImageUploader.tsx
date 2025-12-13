@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, ChangeEvent } from 'react';
-import { supabase } from '@/lib/supabase';
 import imageCompression from 'browser-image-compression';
 import styles from './ImageUploader.module.css';
 
@@ -40,33 +39,14 @@ export default function ImageUploader({ onImagesChange, initialImages }: ImageUp
                 // Compress image
                 const compressedFile = await imageCompression(file, compressionOptions);
 
-                const fileExt = 'jpg'; // Always use jpg after compression
-                const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-                const filePath = `${fileName}`;
+                // Convert directly to Base64 (no Supabase needed)
+                const base64 = await new Promise<string>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.readAsDataURL(compressedFile);
+                });
 
-                const { error: uploadError } = await supabase.storage
-                    .from('jotya-images')
-                    .upload(filePath, compressedFile);
-
-                if (uploadError) {
-                    console.error('Supabase upload failed, falling back to Base64:', uploadError);
-                    // Fallback: Convert to Base64
-                    const base64 = await new Promise<string>((resolve) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result as string);
-                        reader.readAsDataURL(compressedFile);
-                    });
-                    newUrls.push(base64);
-                    continue;
-                }
-
-                const { data } = supabase.storage
-                    .from('jotya-images')
-                    .getPublicUrl(filePath);
-
-                if (data) {
-                    newUrls.push(data.publicUrl);
-                }
+                newUrls.push(base64);
             }
 
             const updatedPreviews = [...previews, ...newUrls];
