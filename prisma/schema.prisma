@@ -23,7 +23,7 @@ model User {
   emailVerified      Boolean             @default(false)
   idVerified         Boolean             @default(false)
   topRatedSeller     Boolean             @default(false)
-  address            Json?               // {street, city, postalCode, country, phone}
+  address            Json? // {street, city, postalCode, country, phone}
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   favorites          Favorite[]
@@ -44,12 +44,12 @@ model User {
 }
 
 model Wallet {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  balance   Float    @default(0)
-  pending   Float    @default(0)
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id])
+  id        String          @id @default(cuid())
+  userId    String          @unique
+  balance   Float           @default(0)
+  pending   Float           @default(0)
+  updatedAt DateTime        @updatedAt
+  user      User            @relation(fields: [userId], references: [id])
   payouts   PayoutRequest[]
 }
 
@@ -58,8 +58,8 @@ model PayoutRequest {
   walletId  String
   amount    Float
   status    String   @default("PENDING") // PENDING, PROCESSED, REJECTED
-  method    String   // BANK_TRANSFER, CASH_PLUS
-  details   Json     // { rib: "...", name: "..." } or { phone: "...", name: "..." }
+  method    String // BANK_TRANSFER, CASH_PLUS
+  details   Json // { rib: "...", name: "..." } or { phone: "...", name: "..." }
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   wallet    Wallet   @relation(fields: [walletId], references: [id])
@@ -101,6 +101,12 @@ model Listing {
   messages         Message[]
   transactions     Transaction[]
   reports          Report[]
+
+  // Performance indexes for frequently queried fields
+  @@index([status, createdAt])
+  @@index([sellerId, status])
+  @@index([category, status])
+  @@index([gender, category, status])
 }
 
 model Brand {
@@ -165,7 +171,7 @@ model Transaction {
   shippedAt      DateTime?
   deliveredAt    DateTime?
 
-  shippingLabel   ShippingLabel?
+  shippingLabel ShippingLabel?
 
   // Escrow & fund release
   buyerConfirmed Boolean   @default(false)
@@ -178,22 +184,28 @@ model Transaction {
 
   review  Review?
   dispute Dispute?
-  buyer   User    @relation("Buyer", fields: [buyerId], references: [id])
-  listing Listing @relation(fields: [listingId], references: [id])
-  seller  User    @relation("Seller", fields: [sellerId], references: [id])
+  buyer   User     @relation("Buyer", fields: [buyerId], references: [id])
+  listing Listing  @relation(fields: [listingId], references: [id])
+  seller  User     @relation("Seller", fields: [sellerId], references: [id])
+
+  // Performance indexes for transaction queries
+  @@index([buyerId, status, createdAt])
+  @@index([sellerId, status, createdAt])
+  @@index([listingId])
+  @@index([status, createdAt])
 }
 
 model Dispute {
   id            String   @id @default(cuid())
   transactionId String   @unique
-  reason        String   // 'NOT_RECEIVED', 'NOT_AS_DESCRIBED', 'DAMAGED'
+  reason        String // 'NOT_RECEIVED', 'NOT_AS_DESCRIBED', 'DAMAGED'
   description   String
   status        String   @default("OPEN") // OPEN, RESOLVED_REFUND, RESOLVED_RELEASE, CANCELLED
   resolution    String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  
-  transaction   Transaction @relation(fields: [transactionId], references: [id])
+
+  transaction Transaction @relation(fields: [transactionId], references: [id])
 }
 
 model Message {
@@ -215,6 +227,11 @@ model Message {
   // Notification fields
   read   Boolean   @default(false)
   readAt DateTime?
+
+  // Performance indexes for message/conversation queries
+  @@index([senderId, receiverId, createdAt])
+  @@index([receiverId, createdAt])
+  @@index([listingId, createdAt])
 }
 
 model Favorite {
@@ -256,30 +273,30 @@ model Report {
 }
 
 model ShippingLabel {
-  id              String    @id @default(cuid())
-  trackingNumber  String    @unique
-  transactionId   String    @unique
-  transaction     Transaction @relation(fields: [transactionId], references: [id])
-  
-  carrier         String    // 'AMANA' | 'YASSIR' | 'COD'
-  carrierRef      String?   // External carrier tracking number
-  
-  pickupAddress   Json      // Seller address
-  deliveryAddress Json      // Buyer address
-  
-  weight          Float?    // in kg
-  dimensions      Json?     // {length, width, height} in cm
-  declaredValue   Float?    // for insurance
-  
-  qrCode          String    // QR code data (base64)
-  barcode         String?   // Barcode data
-  labelUrl        String?   // PDF URL if generated
-  
-  status          String    @default("PENDING_PICKUP")
-  statusHistory   Json      // Array of {status, timestamp, location, scannedBy}
-  
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String      @id @default(cuid())
+  trackingNumber String      @unique
+  transactionId  String      @unique
+  transaction    Transaction @relation(fields: [transactionId], references: [id])
+
+  carrier    String // 'AMANA' | 'YASSIR' | 'COD'
+  carrierRef String? // External carrier tracking number
+
+  pickupAddress   Json // Seller address
+  deliveryAddress Json // Buyer address
+
+  weight        Float? // in kg
+  dimensions    Json? // {length, width, height} in cm
+  declaredValue Float? // for insurance
+
+  qrCode   String // QR code data (base64)
+  barcode  String? // Barcode data
+  labelUrl String? // PDF URL if generated
+
+  status        String @default("PENDING_PICKUP")
+  statusHistory Json // Array of {status, timestamp, location, scannedBy}
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model BlockedUser {
@@ -302,9 +319,9 @@ model Notification {
   link      String?
   read      Boolean          @default(false)
   createdAt DateTime         @default(now())
-  
+
   user User @relation(fields: [userId], references: [id])
-  
+
   @@index([userId, read])
   @@index([userId, createdAt])
 }

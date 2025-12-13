@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 import Stripe from 'stripe';
 
 export async function POST(request: Request) {
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
     try {
         event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET);
     } catch (err: any) {
-        console.error(`Webhook signature verification failed.`, err.message);
+        logger.error('Stripe webhook signature verification failed', err, { signature: sig?.substring(0, 20) });
         return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
     }
 
@@ -69,9 +70,9 @@ export async function POST(request: Request) {
                     },
                 });
 
-                console.log(`Payment successful for listing ${listingId}`);
+                logger.info('Payment successfully processed', { listingId, buyerId, sellerId, amount: amountFloat });
             } catch (error) {
-                console.error('Error processing successful payment:', error);
+                logger.error('Failed to process successful payment', error as Error, { listingId, buyerId, sellerId });
                 return NextResponse.json({ error: 'Error processing payment' }, { status: 500 });
             }
         }
