@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import dynamic from 'next/dynamic';
 import "./globals.css";
 import BottomNav from "@/components/Layout/BottomNav";
 import DesktopHeader from "@/components/Layout/DesktopHeader";
@@ -7,12 +6,7 @@ import { ToastProvider } from "@/components/Toast/ToastProvider";
 import ToastContainer from "@/components/Toast/ToastContainer";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { NotificationProvider } from "@/components/Notifications/NotificationProvider";
-
-// Lazy load FloatingAIChat to reduce initial bundle size
-const FloatingAIChat = dynamic(() => import('@/components/AI/FloatingAIChat'), {
-  ssr: false,
-  loading: () => null
-});
+import FloatingAIChatClient from "@/components/FloatingAIChatClient";
 
 export const metadata: Metadata = {
   title: "Jotya | Premium Second-Hand Marketplace in Morocco",
@@ -75,7 +69,7 @@ export default function RootLayout({
               <DesktopHeader />
               <main>{children}</main>
               <BottomNav />
-              <FloatingAIChat />
+              <FloatingAIChatClient />
               <ToastContainer />
             </ErrorBoundary>
           </NotificationProvider>
