@@ -1,36 +1,213 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Jotya - Moroccan Premium Second-Hand Marketplace
 
-## Getting Started
+**Marketplace de luxe pour articles de seconde main authentifiés au Maroc**
 
-First, run the development server:
+## 🌟 Features
+
+- ✅ **Authentication** - Inscription, connexion, vérification email
+- ✅ **Listings** - Upload avec compression d'images (Base64), AI analysis
+- ✅ **Search** - Catégories hiérarchiques, filtres avancés, AI smart search
+- ✅ **Messaging** - Chat en temps réel, système d'offres
+- ✅ **Payments** - Stripe (cartes) + Cash on Delivery (COD)
+- ✅ **Shipping** - Support pour Amana, Digylog, Tawssil
+- ✅ **Analytics** - Dashboards vendeur et admin
+- ✅ **AI** - Assistant intelligent, analyse d'images, vérification d'authenticité
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+ 
+- PostgreSQL database (Supabase recommended)
+- Stripe account
+- OpenAI API key (pour features AI)
+
+### Installation
 
 ```bash
+# Clone le repository
+git clone https://github.com/indepadib/jotya.git
+cd jotya
+
+# Installer les dépendances
+npm install
+
+# Configurer les variables d'environnement
+cp .env.example .env
+# Éditer .env avec vos credentials
+
+# Setup la base de données
+npx prisma generate
+npx prisma db push
+
+# (Optionnel) Seeder la base de données
+npm run seed
+
+# Démarrer le serveur de développement
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvrir [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🔧 Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Créer un fichier `.env` à la racine avec:
 
-## Learn More
+```env
+# Database (Supabase PostgreSQL)
+DATABASE_URL="postgresql://..."
+DIRECT_URL="postgresql://..."
 
-To learn more about Next.js, take a look at the following resources:
+# NextAuth / Session
+NEXTAUTH_SECRET="your-secret-key"
+NEXTAUTH_URL="http://localhost:3000"
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Stripe Payment
+STRIPE_SECRET_KEY="sk_test_..."
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# OpenAI (AI Features)
+OPENAI_API_KEY="sk-..."
 
-## Deploy on Vercel
+# Email (Resend)
+RESEND_API_KEY="re_..."
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# App Config
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Optional: Shipping Carriers
+DIGYLOG_API_KEY="..."
+TAWSSIL_API_KEY="..."
+```
+
+## 📁 Project Structure
+
+```
+jotya/
+├── src/
+│   ├── app/                 # Next.js 16 App Router
+│   │   ├── (auth)/         # Auth pages (login, signup)
+│   │   ├── items/          # Item pages
+│   │   ├── search/         # Search & filters
+│   │   ├── inbox/          # Messaging
+│   │   ├── profile/        # User profile
+│   │   ├── admin/          # Admin panel
+│   │   └── api/            # API routes
+│   ├── components/         # React components
+│   ├── lib/                # Utilities & helpers
+│   └── styles/             # Global CSS
+├── prisma/
+│   ├── schema.prisma       # Database schema
+│   └── seeds/              # Seed data
+└── public/                 # Static assets
+```
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 16 (App Router, React 19)
+- **Language**: TypeScript
+- **Database**: PostgreSQL (Prisma ORM)
+- **Styling**: CSS Modules
+- **Payments**: Stripe
+- **Email**: Resend
+- **AI**: OpenAI GPT-4
+- **Images**: Base64 (compressed to 100KB)
+- **Deployment**: Netlify
+
+## 📦 Key Dependencies
+
+- `next` - React framework
+- `prisma` - Database ORM
+- `stripe` - Payment processing
+- `openai` - AI features
+- `resend` - Email notifications
+- `browser-image-compression` - Image optimization
+- `qrcode` - Shipping labels
+- `framer-motion` - Animations
+
+## 🎨 Design System
+
+**Moroccan-Inspired Luxury Aesthetic**
+
+- **Colors**: Terracotta (#C4785A), Gold (#D4A574), Deep Blue
+- **Typography**: Playfair Display (headings) + Inter (body)
+- **Theme**: Warm, premium, trustworthy
+
+## 🚢 Deployment
+
+### Netlify (Recommended)
+
+```bash
+# Build command
+npm run build
+
+# Publish directory
+.next
+
+# Environment variables
+# Add all .env variables in Netlify dashboard
+```
+
+### Database Migrations
+
+```bash
+# Create migration
+npx prisma migrate dev --name your_migration_name
+
+# Apply to production
+npx prisma migrate deploy
+```
+
+## 📝 Scripts
+
+```bash
+npm run dev          # Development server
+npm run build        # Production build
+npm run start        # Start production server
+npm run seed         # Seed database
+npm run lint         # Run linter
+```
+
+## 🔐 Security
+
+- Passwords hashed with bcrypt
+- Session-based authentication
+- CSRF protection
+- SQL injection prevention (Prisma)
+- XSS protection (React)
+
+## 📊 Database Schema
+
+Voir `prisma/schema.prisma` pour le schéma complet.
+
+**Modèles principaux**:
+- User
+- Listing
+- Transaction
+- Message
+- Review
+- Wallet
+- etc.
+
+## 🤝 Contributing
+
+1. Fork le projet
+2. Créer une branche (`git checkout -b feature/AmazingFeature`)
+3. Commit (`git commit -m 'Add AmazingFeature'`)
+4. Push (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+Private - Tous droits réservés
+
+## 🆘 Support
+
+Pour questions ou support:
+- Email: support@jotya.ma
+- GitHub Issues: [Issues](https://github.com/indepadib/jotya/issues)
+
+---
+
+**Made with ❤️ in Morocco** 🇲🇦
